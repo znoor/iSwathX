@@ -34,7 +34,7 @@ spectronautFormat <- function(dat, nodup = TRUE)
   ExcludeFromAssay <- c(rep(FALSE, nrow(dat)))
   ModifiedPeptide  <- dat$modification_sequence
   LabeledSequence <- dat$modification_sequence
-  ProteinId  <- dat$protein_name
+  ProteinGroups  <- dat$protein_name
   UniProtIds  <- dat$uniprot_id
   UserGroup <- c(rep("", nrow(dat)))
   
@@ -42,7 +42,7 @@ spectronautFormat <- function(dat, nodup = TRUE)
                         RelativeIntensity, StrippedPeptide, PrecursorCharge,
                         FragmentType, FragmentNumber, FragmentCharge, FragmentLossType,
                         ExcludeFromAssay, ModifiedPeptide, LabeledSequence,
-                        ProteinId, UniProtIds, UserGroup)
+                        ProteinGroups, UniProtIds, UserGroup)
   
   dat.res
   
