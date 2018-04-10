@@ -110,7 +110,7 @@ canonicalFormat = function(dat, format=c("peakview", "openswath", "skyline", "sp
     Q3 <- as.numeric(as.character(dat$FragmentMz))
     RT_detected <- as.numeric(as.character(dat$iRT))
     protein_name <- dat$ProteinGroups
-    iRT <- as.numeric(as.character(dat$RetentionTime))
+    iRT <- as.numeric(as.character(dat$iRT))
     relative_intensity <- as.numeric(as.character(dat$RelativeIntensity))
     stripped_sequence <- dat$StrippedPeptide
     modification_sequence <- dat$ModifiedPeptide
