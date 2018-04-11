@@ -12,7 +12,6 @@
 
 ### LIBRARY FORMAT FILE (SPECTRONAUT)
 
-
 spectronautFormat <- function(dat, nodup = TRUE)
 {
   if(nodup) dat <- dat[!duplicated(dat),]
