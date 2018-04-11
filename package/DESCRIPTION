@@ -1,0 +1,14 @@
+Package: iSwathX
+Type: Package
+Title: iSwathX Functions 
+Version: 0.1.0
+Author: Zainab Noor
+Maintainer: Zainab Noor <zainab.noor@students.mq.edu.au>
+Description: Extension and a web application for SwathXtend
+License: MQ
+Encoding: UTF-8
+LazyData: true
+Depends: e1071, pryr, graphics, ggplot2, ggthemes, grid, ggpubr, plyr, VennDiagram
+RoxygenNote: 6.0.1
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr

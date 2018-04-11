@@ -1,0 +1,380 @@
+\documentclass[a4paper]{article}
+\usepackage{hyperref, graphicx, color, alltt}
+\usepackage{Sweave}
+\usepackage[round]{natbib}
+\usepackage{epstopdf}
+\definecolor{Red}{rgb}{0.7,0,0}
+\definecolor{Blue}{rgb}{0,0,0.8}
+\definecolor{hellgrau}{rgb}{0.55,0.55,0.55}
+\newcommand{\pkg}[1]{\texttt{#1}}
+\newenvironment{smallexample}{\begin{alltt}\small}{\end{alltt}}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+%\VignetteIndexEntry{iSwathX}
+%\VignetteDepends{iSwathX}
+%\VignetteKeywords{}
+%\VignettePackage{iSwathX}
+
+\SweaveOpts{engine=R,eps=TRUE}
+\setkeys{Gin}{width=0.8\textwidth}
+
+\title{iSwathX \\
+\large An R package for extending the SwathXtend functions and develop a web application}
+\author{Zainab Noor\\
+  Macquarie University, Australia\\
+\url{zainab.noor@students.mq.edu.au}
+}
+\maketitle
+\sloppy
+
+
+iSwathX is an R package which inherits basic functions from the ‘SwathXtend’ package and extends them to perform the novel functionalities.Functions from this package has been used to develop a web application named 'iSwathX' available on shiny server (https://biolinfo.shinyapps.io/iSwathX). It aimed to provide an automatic pipeline for extended assay library generation and visualization. This vignette describes how to use the funcitons in iSwathX.
+
+\section*{Introduction}
+
+The first integrated DIA and quantitative analysis protocol, termed SWATH was shown to offer accurate,
+reproducible and robust proteomic quantification (Gillet et al 2012).
+An important concept in DIA analysis is use of a LC-retention time referenced spectral ion library to enable
+peptide identification from DIA generated multiplexed MS/MS spectra. iSwathX is an R based software package with a web application to facilitate the generation of extended assay libraries for SWATH data extraction, making it compatible to the most commonly used DIA data analysis software.
+
+\section*{Package installation}
+To install the iSwathX package the following commands can be executed within R.
+
+<<eval=FALSE, echo=TRUE>>=
+install.packages("devtools")
+library(devtools)
+install_github("znoor/iSwathX")
+@
+
+Typically the workspace is cleared and the iSwathX pakcage is loaded.
+
+<<1, eval=TRUE, echo=TRUE>>=
+rm(list=ls())
+library(iSwathX)
+@
+
+The example data, that is included in the package, consists of five assay libraries. The libraries can
+be loaded using \textit{readLibFile}. Library format can be ``PeakView" (AB Sciex 2014), ``OpenSWATH" (Rost et al. 2014) ``Skyline" () or ``Spectronaut" () format which is in a tab-delimitated .txt or comma-delimitated .csv file. The parameter \textit{clean} in function \textit{readLibFile} specifies if the library to be clearned, which will be describe later.
+
+<<2 , eval=TRUE, echo=TRUE>>=
+filenames <- c("Lib2.txt", "Lib3.txt")
+libfiles <- paste(system.file("files",package="iSwathX"),
+	filenames,sep="/")
+Lib2 <- readLibFile(libfiles[1], clean=TRUE)
+Lib3 <- readLibFile(libfiles[2], clean=TRUE)
+@
+
+If the file format is ``peakview", it requires the following columns:
+
+\begin{itemize}
+\item Q1: Q1 m/z (precursor m/z)
+\item Q3: Q3 m/z (fragment m/z)
+\item RT\_detected: retention time
+\item protein\_name: protein name
+\item isotype: isotype type
+\item relative\_intensity: fragment ion intensity
+\item stripped\_sequence: peptide sequences without modifications
+\item modification\_sequence: peptide sequences with modifications
+\item prec\_z: peptide charge
+\item frg\_type: fragment type (b or y ion)
+\item frg\_z: fragment charge
+\item frg\_nr: ion number
+\item iRT: calibrated retention time (the values might not be meaningful for experiments with no iRT peptides spiked in)
+\item uniprot\_id: database accession number
+\item decoy: whether the peptide a decoy or not (TRUE or FALSE)
+\item confidence: the confidence of the identified peptide (a value between 0 and 1)
+\item shared: whether the peptide is shared by multiple proteins (TRUE or FALSE)
+\item N: a ranking number for the protein
+\end{itemize}
+Optional columns for PeakView format libaries include:
+\begin{itemize}
+\item score: score for peptide identification
+\item prec\_y: the precursor ion intensity
+\item rank: ion intensity ranking
+\item mods: modification
+\item nterm: N terminal modification
+\item cterm: C terminal modification
+\end{itemize}
+
+If the file format is ``openswath", it must contain the following columns:
+\begin{itemize}
+\item PrecursorMz: precursor m/z
+\item ProductMz: fragment m/z
+\item Tr\_recalibrated: retention time
+\item ProteinName: protein name
+\item GroupLabel: isotype type
+\item LibraryIntensity: fragment ion intensity
+\item PeptideSequence: peptide sequences without modifications
+\item FullUniModPeptideName: peptide sequences with modifications
+\item UniprotID: database accession number
+\item decoy: whether the peptide a decoy or not
+\item PrecursorCharge: precursor charge
+\item FragmentType: fragment type
+\item FragmentCharge: fragment charge
+\item FragmentSeriesNumber: fragment ion number
+\end{itemize}
+
+If the file format is ``skyline", it must contain the following columns:
+\begin{itemize}
+\item PrecursorMz: precursor m/z
+\item ProductMz: fragment m/z
+\item Tr\_recalibrated: retention time
+\item ProteinName: protein name
+\item Isotype: isotype type
+\item LibraryIntensity: fragment ion intensity
+\item PeptideSequence: peptide sequences without modifications
+\item ModificationSequence: peptide sequences with modifications
+\item UniprotID: database accession number
+\item decoy: whether the peptide a decoy or not
+\item PrecursorCharge: precursor charge
+\item FragmentType: fragment type
+\item FragmentCharge: fragment charge
+\item FragmentSeriesNumber: fragment ion number
+\end{itemize}
+Optional columns include:
+\begin{itemize}
+\item rank: ion intensity ranking
+\item nterm: N terminal modification
+\item cterm: C terminal modification
+\end{itemize}
+
+If the file format is ``spectronaut", it must contain the following columns:
+\begin{itemize}
+\item PrecursorMz: precursor m/z
+\item ProductMz: fragment m/z
+\item RetentionTime: retention time
+\item ProteinName: protein name
+\item RelativeIntensity: fragment ion intensity
+\item PeptideSequence: peptide sequences without modifications
+\item ModificationSequence: peptide sequences with modifications
+\item UniprotID: database accession number
+\item PrecursorCharge: precursor charge
+\item FragmentType: fragment type
+\item FragmentCharge: fragment charge
+\item FragmentSeriesNumber: fragment ion number
+\end{itemize}
+Optional columns include:
+\begin{itemize}
+\item rank: ion intensity ranking
+\item decoy: whether the peptide a decoy or not
+\item nterm: N terminal modification
+\item cterm: C terminal modification
+\end{itemize}
+
+
+
+\section*{Building extended assay library}
+To build an extended library using iSwathX, one seed library and one add-on library are needed.
+The seed library is usually a local assay library which was generated with SWATH data using the same
+instrument and the same chromatography condition. The add-on library can be a local archived assay library or
+an external library downloaded from public data repositories such as SWATHAtlas(Biology IfS 2014).
+
+\subsection*{Library cleaning}
+All candidate assay libraries were first subject to a cleaning process which
+removes low confident peptides and low intensity ions by user-defined thresholds.
+The default values for these two thresholds are $99\%$ for peptide confidence and 5 for ion intensity.
+The clearning process can also opt to remove peptides with modifications for miss cleavages.
+The clearning process can be done separately using function \textit{cleanLib} or as part of the library reading process as
+shown above.
+
+<<eval=FALSE, echo=TRUE>>=
+Lib2 <- cleanLib(Lib2, intensity.cutoff = 5, conf.cutoff = 0.99,
+			nomod = FALSE, nomc = FALSE)
+Lib3 <- cleanLib(Lib3, intensity.cutoff = 5, conf.cutoff = 0.99,
+			nomod = FALSE, nomc = FALSE)
+@
+
+\subsection*{Library summary}
+The function \textit{libSummary} generates the library summary. It displays information related to number of proteins, peptides (precursor ions) and fragment ions in assay libraries.
+
+<<eval=TRUE, echo=TRUE>>=
+libSummary(Lib2)
+libSummary(Lib3)
+@
+
+\subsection*{Library format conversions}
+All candidate assay libraries can be converted into different file formats.
+
+PeakView format will be returned using function \textit{peakviewFormat}.
+
+<<eval=FALSE, echo=TRUE>>=
+peakviewFormat(Lib2)
+@
+
+OpenSwath format will be returned using function \textit{OswathFormat}.
+
+<<eval=FALSE, echo=TRUE>>=
+OswathFormat(Lib2)
+@
+
+Skyline format will be returned using function \textit{skylineFormat}.
+
+<<eval=FALSE, echo=TRUE>>=
+skylineFormat(Lib3)
+@
+
+Spectronaut format will be returned using function \textit{spectronautFormat}.
+
+<<eval=FALSE, echo=TRUE>>=
+spectronautFormat(Lib3)
+@
+
+\subsection*{Matching quality checking}
+
+It is very important to check the matching quality between the seed and add-on libraries before building the extended library.
+Function \textit{checkQuality} can be used to perform the library matching quality check based on the retention time and the
+relative ion intensity.
+
+Retention time correlation and predicted average error of RT plots by retention times will be returned using function \textit{computeRTTime}.
+
+<<eval=TRUE, echo=TRUE>>=
+list.timecor <- computeRTTime(Lib2, Lib3)
+@
+<<eval=TRUE, echo=TRUE, fig=TRUE>>=
+list.timecor[[2]]
+@
+<<eval=TRUE, echo=TRUE, fig=TRUE>>=
+list.timecor[[3]]
+@
+
+Retention time correlation and predicted average error of RT plots by hydrophobicity indexes will be returned using function \textit{computeRTHydro}.
+
+<<eval=TRUE, echo=TRUE>>=
+hydroFile <- paste(system.file("files", package = "iSwathX"),
+                                       "hydroIndex.txt", sep = "/")
+hydro <- readLibFile(hydroFile, type = "hydro")
+list.hydrocor <- computeRTHydro(Lib2, Lib3, hydro)
+@
+<<eval=TRUE, echo=TRUE, fig=TRUE>>=
+list.hydrocor[[2]]
+@
+<<eval=TRUE, echo=TRUE, fig=TRUE>>=
+list.hydrocor[[3]]
+@
+
+Relative ion intensity correlation (median spearman ) of common fragment ions between two libraries will be returned using function \textit{computeRTTime}.
+
+<<eval=TRUE, echo=TRUE>>=
+Lib2 <- normalise(Lib2)
+Lib3 <- normalise(Lib3)
+list.intensitycor <- computeIntensityCor(Lib2, Lib3)
+list.intensitycor[[1]]
+@
+
+We recommend if RT correlation $R^2$ is greater than 0.8, the RMSE less than 2 and intensity correlation is greater than 0.6, the two libraries have good matching quality. We suggest the integration of libraries should be performed only when the retention time (RT) and relative intensity (RI) matching quality are good.
+
+Various statics about the two libraries can be plotted and exported into a multi-tab spreedsheet using \textit{plotStats} function. These include barplots of the number of
+proteins and peptides of the seed library, add-on library and their relationship (including overlapping proteins, peptides,
+retention time scatter plots and spearman correlation coefficient boxplots)
+<<c, eval=TRUE, echo=TRUE, fig=TRUE>>=
+list.statplots <- plotStats(Lib2, Lib2)
+@
+<<eval=TRUE, echo=TRUE, fig=TRUE>>=
+list.statplots[["ppnum"]]
+@
+<<eval=TRUE, echo=TRUE, fig=TRUE>>=
+list.statplots[["pdens"]]
+@
+<<eval=TRUE, echo=TRUE, fig=TRUE>>=
+list.statplots[["phist"]]
+@
+
+\subsection*{Build the extended library}
+If the seed and add-on libraries have good matching quality, we can generate an extended library by integrating them
+using function \textit{buildSpectraLibPair}.
+
+<<4, eval=FALSE, echo=TRUE>>=
+Lib2_3 <- buildSpectraLibPair(Lib2, Lib3, clean=T,plot=F,
+				outputFormat = "peakview",
+				outputFile = "Lib2_3.txt")
+@
+
+iSwathX, based on SwathXtend, provides two methods of retention time alignment: time-based and hydrophobicity-based. If the retention time correlation between the seed and addon
+libraries are good (e.g., $R^2$ > 0.8), time-based method is recommended. Otherwise, hydrophobicity-based method can be tried. The hydrophobicity index for peptides
+can be calculated using SSRCalc(Krokhin 2006). The format of a hydrophobicity index file should include three columns, Sequence, Length	and Hydrophobicity.
+An example of the hydrophobicity index file is included this package. The peptides in this file are all the peptides
+appearing in the three single assay libraries, i.e., \textit{Lib1.txt}, \textit{Lib2.txt} and \textit{Lib3.txt}.
+
+<<>>=
+hydroFile <- paste(system.file("files",package="iSwathX"),
+				"hydroIndex.txt",sep="/")
+hydro <- readLibFile(hydroFile, type="hydro")
+head(hydro)
+@
+
+To build extended libraries using hydrophobicity-based retention time alignment, we can use the following command. The ``method" can also
+be ``hydrosequence" which will the combination of hydrophobicity index and the peptide sequence when building the model.
+
+<<eval=FALSE, echo=TRUE>>=
+Lib2_3.hydro <- buildSpectraLibPair(libfiles[1], libfiles[2], hydro,
+				clean=T,
+				nomc=T, nomod=T, plot=F,
+				method="hydro",
+				outputFormat = "peakview",
+				outputFile = "Lib2_3.txt")
+@
+
+\subsection*{Export the library}
+The output of the library format can be ``PeakView", ``OpenSwath", ``Skyline", ``Spectronaut"
+
+<<eval=FALSE, echo=TRUE>>=
+outputLib(Lib2_3, filename="Lib2_3.txt", format="peakview")
+@
+
+\subsection*{Library checking}
+Function \textit{reliabilityCheckLibrary} compares the extended library with the seed library and checks the peptide and
+protein coverage. The input is the  seed library and extended library files, and the output is a plot displaying the number of peptides and proteins in each library.
+
+<<eval=FALSE, echo=TRUE>>=
+reliabilityCheckLibrary(Lib2, Lib2_3)
+@
+
+
+
+\section*{References}
+Biology IfS (2014) SWATHAtlas.
+\\
+Gillet LC et al. ``Targeted data extraction of the MS/MS spectra generated by data-independent acquisition:
+	a new concept for consistent and accurate proteome analysis". Molecular and Cellular Proteomics 11. 2012
+\\
+Krokhin OV. ``Sequence-specific retention calculator. Algorithm for peptide retention prediction in ion-pair RP-HPLC". Analytical chemistry 78:7785-7795. 2006
+\\
+Wu JX et al. ``SWATH mass spectrometry performance using extended peptide MS/MS
+assay libraries". Molecular and Cellular Proteomics 15.7 (2016): 2501-2514
+\\
+Wu JX et al. ``Improving protein detection confidence using SWATH mass spectrometry with large peptide reference
+	libraries". Proteomics. (Under review 2017)
+\\
+AB Sciex. ``MS/MS with Swath Acquisition MicroApp 2.0 User Guide". 2014
+\\
+Rost H L., et al. ``OpenSWATH enables automated, targeted analysis of data-independent acquisition MS data."
+	Nature biotechnology 32.3 (2014): 219-223.
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
