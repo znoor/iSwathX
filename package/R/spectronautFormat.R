@@ -12,7 +12,6 @@
 
 ### LIBRARY FORMAT FILE (SPECTRONAUT)
 
-source("libraryFormat.R")
 
 spectronautFormat <- function(dat, nodup = TRUE)
 {
