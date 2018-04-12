@@ -30,7 +30,7 @@
 \sloppy
 
 
-iSwathX is an R package which inherits basic functions from the ‘SwathXtend’ package and extends them to perform the novel functionalities.Functions from this package has been used to develop a web application named 'iSwathX' available on shiny server (https://biolinfo.shinyapps.io/iSwathX). It aimed to provide an automatic pipeline for extended assay library generation and visualization. This vignette describes how to use the funcitons in iSwathX.
+iSwathX is an R package which inherits basic functions from the 'SwathXtend' package and extends them to perform the novel functionalities.Functions from this package has been used to develop a web application named 'iSwathX' available on shiny server (https://biolinfo.shinyapps.io/iSwathX). It aimed to provide an automatic pipeline for extended assay library generation and visualization. This vignette describes how to use the funcitons in iSwathX.
 
 \section*{Introduction}
 
@@ -45,7 +45,7 @@ To install the iSwathX package the following commands can be executed within R.
 <<eval=FALSE, echo=TRUE>>=
 install.packages("devtools")
 library(devtools)
-install_github("znoor/iSwathX")
+install_github("znoor/iSwathX", subdir = "package")
 @
 
 Typically the workspace is cleared and the iSwathX pakcage is loaded.
@@ -143,17 +143,18 @@ Optional columns include:
 If the file format is ``spectronaut", it must contain the following columns:
 \begin{itemize}
 \item PrecursorMz: precursor m/z
-\item ProductMz: fragment m/z
+\item FragmentMz: fragment m/z
 \item RetentionTime: retention time
-\item ProteinName: protein name
+\item iRT: indexed retention time
+\item ProteinGroups: protein name
 \item RelativeIntensity: fragment ion intensity
-\item PeptideSequence: peptide sequences without modifications
-\item ModificationSequence: peptide sequences with modifications
-\item UniprotID: database accession number
+\item StrippedPeptide: peptide sequences without modifications
+\item ModifiedPeptide: peptide sequences with modifications
+\item UniProtIds: database accession number
 \item PrecursorCharge: precursor charge
 \item FragmentType: fragment type
 \item FragmentCharge: fragment charge
-\item FragmentSeriesNumber: fragment ion number
+\item FragmentNumber: fragment ion number
 \end{itemize}
 Optional columns include:
 \begin{itemize}
@@ -231,12 +232,7 @@ Retention time correlation and predicted average error of RT plots by retention 
 
 <<eval=TRUE, echo=TRUE>>=
 list.timecor <- computeRTTime(Lib2, Lib3)
-@
-<<eval=TRUE, echo=TRUE, fig=TRUE>>=
-list.timecor[[2]]
-@
-<<eval=TRUE, echo=TRUE, fig=TRUE>>=
-list.timecor[[3]]
+list.timecor[[1]]
 @
 
 Retention time correlation and predicted average error of RT plots by hydrophobicity indexes will be returned using function \textit{computeRTHydro}.
@@ -246,12 +242,7 @@ hydroFile <- paste(system.file("files", package = "iSwathX"),
                                        "hydroIndex.txt", sep = "/")
 hydro <- readLibFile(hydroFile, type = "hydro")
 list.hydrocor <- computeRTHydro(Lib2, Lib3, hydro)
-@
-<<eval=TRUE, echo=TRUE, fig=TRUE>>=
-list.hydrocor[[2]]
-@
-<<eval=TRUE, echo=TRUE, fig=TRUE>>=
-list.hydrocor[[3]]
+list.hydrocor[[1]]
 @
 
 Relative ion intensity correlation (median spearman ) of common fragment ions between two libraries will be returned using function \textit{computeRTTime}.
@@ -268,16 +259,10 @@ We recommend if RT correlation $R^2$ is greater than 0.8, the RMSE less than 2 a
 Various statics about the two libraries can be plotted and exported into a multi-tab spreedsheet using \textit{plotStats} function. These include barplots of the number of
 proteins and peptides of the seed library, add-on library and their relationship (including overlapping proteins, peptides,
 retention time scatter plots and spearman correlation coefficient boxplots)
-<<c, eval=TRUE, echo=TRUE, fig=TRUE>>=
+<<c, eval=FALSE, echo=TRUE>>=
 list.statplots <- plotStats(Lib2, Lib2)
-@
-<<eval=TRUE, echo=TRUE, fig=TRUE>>=
 list.statplots[["ppnum"]]
-@
-<<eval=TRUE, echo=TRUE, fig=TRUE>>=
 list.statplots[["pdens"]]
-@
-<<eval=TRUE, echo=TRUE, fig=TRUE>>=
 list.statplots[["phist"]]
 @
 
@@ -297,7 +282,7 @@ can be calculated using SSRCalc(Krokhin 2006). The format of a hydrophobicity in
 An example of the hydrophobicity index file is included this package. The peptides in this file are all the peptides
 appearing in the three single assay libraries, i.e., \textit{Lib1.txt}, \textit{Lib2.txt} and \textit{Lib3.txt}.
 
-<<>>=
+<<eval=TRUE, echo=TRUE>>=
 hydroFile <- paste(system.file("files",package="iSwathX"),
 				"hydroIndex.txt",sep="/")
 hydro <- readLibFile(hydroFile, type="hydro")
