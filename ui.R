@@ -1371,7 +1371,8 @@ var myWidth = $(window).width();
     column(12,
            wellPanel(HTML("This application is built with"), strong(tags$a("RShiny", href = "http://shiny.rstudio.com/")), HTML(" and implements"), strong(tags$i("iSwathX")), HTML("package "),
                       HTML("which is based on previously available package "), 
-                     strong(tags$a("SwathXtend", href = "http://bioconductor.org/packages/SwathXtend/")),HTML("."), 
+                     strong(tags$a("SwathXtend", href = "http://bioconductor.org/packages/SwathXtend/")), HTML("("),
+                     strong(tags$a("Wu et al., 2016", href = "http://www.mcponline.org/content/15/7/2501.full")), HTML(")."),
                      style = "background-color: #ffffff;")
            )
   )
