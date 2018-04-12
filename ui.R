@@ -4,6 +4,7 @@
 #
 # Find out more about building applications with Shiny here:
 # 
+
 #    http://shiny.rstudio.com/
 #
 
@@ -143,7 +144,7 @@ var myWidth = $(window).width();
                                           selected = FALSE,
                                           startExpanded = FALSE)),
                      disable = FALSE,
-                     collapsed = TRUE),
+                     collapsed = FALSE),
     dashboardBody(
       tags$style(HTML("
 
@@ -164,15 +165,15 @@ var myWidth = $(window).width();
       tabItems(
         tabItem(tabName = "introduction",
                 wellPanel(fluidRow(
-                  column(4, fluidRow(img(src='title1.png', align = "left", width = "75%", height = "75%")),
-                         fluidRow(strong(h4(HTML("Generation of extended peptide assay libraries by integrating local seed and addon library.")))),
+                  column(6, fluidRow(img(src='title1.png', align = "left", width = "65%", height = "65%")),
+                         fluidRow(strong(h4(HTML("A web tool to generate extended peptide reference MS/MS libraries for use in DIA mass spectrometry.")))),
                          fluidRow(strong(HTML("Main functions performed by SwathXtend application include: <br />
                                                   <br />
                                                   1. Library format conversions <br />
                                                   2. Libraries comparisons <br />
                                                   3. Building the combined or extended libraries <br />
                                                   4. Data plotting or Visualization <br />"), style = "background-color: #ffffff;")),
-                         fluidRow(column(6, 
+                         fluidRow(column(4, 
                                          strong(h3(tags$a(icon("play"), "iSwathX Wizard", onclick = "openTab('autowizard')"))),
                                   tags$script(HTML("
                                                               var openTab = function(tabName){
@@ -183,8 +184,8 @@ var myWidth = $(window).width();
                                                               });
                                                               }
                                                               "))),
-                                  column(6, 
-                                         strong(h3(tags$a(icon("play"), "Manual Wizard", onclick = "openTab('datainput')"))),
+                                  column(4, 
+                                         strong(h3(tags$a(icon("play"), "Manual Mode", onclick = "openTab('datainput')"))),
                                          tags$script(HTML("
                                                           var openTab = function(tabName){
                                                           $('a', $('.sidebar')).each(function(){
@@ -193,10 +194,22 @@ var myWidth = $(window).width();
                                                           };
                                                           });
                                                           }
-                                                          ")))
+                                                          "))),
+                                  column(4, 
+                                         strong(h3(tags$a(icon("edit", lib = "glyphicon"), "Help", onclick = "openTab('help')"))),
+                                         tags$script(HTML("
+                                                                    var openTab = function(tabName){
+                                                                    $('a', $('.sidebar')).each(function(){
+                                                                    if(this.getAttribute('data-value') == tabName) {
+                                                                    this.click()
+                                                                    };
+                                                                    });
+                                                                    }
+                                                                    "))
+                                         )
                                   )
                          ),
-                   column(8, img(src='titleimage.png', align = "right", width = "60%", height = "60%"))
+                   column(6, img(src='titleimage.png', align = "right", width = "90%", height = "90%"))
                   ),
                   style = "background-color: #ffffff;"),
                 splitLayout(cellWidths = c("45%", "55%"),
@@ -1317,10 +1330,24 @@ var myWidth = $(window).width();
                                    # )
                                   ),
                            tabItem(tabName = "help",
+                                   fluidRow(column(5, h2(strong("iSwathX help and tutorial"))),
+                                            
+                                            column(3, offset = 2, 
+                                                   strong(h3(tags$a(icon("home", lib = "glyphicon"),"Home", onclick = "openTab('introduction')"))),
+                                                   tags$script(HTML("
+                                                                    var openTab = function(tabName){
+                                                                    $('a', $('.sidebar')).each(function(){
+                                                                    if(this.getAttribute('data-value') == tabName) {
+                                                                    this.click()
+                                                                    };
+                                                                    });
+                                                                    }
+                                                                    ")))
+                                            
+                                            ),
                                    wellPanel(style = "background-color: #ffffff;",
-                                             h2(strong("iSwathX help and tutorial"),
-                                                br(), br(), br(),
-                                               htmlOutput("helppage"))
+                                                br(),
+                                                htmlOutput("helppage")
                                                 
                                    )
                                    )
