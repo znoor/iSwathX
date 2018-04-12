@@ -754,6 +754,7 @@ shinyServer(function(input, output, session) {
                                               content = function (file) {
                                                 
                                                 data = combdatalib()
+                                                data = data[[1]]
                                                 
                                                 if(input$outputlibformat == "PeakView"){
                                                   write.csv(x = peakviewFormat(data), file = file)
