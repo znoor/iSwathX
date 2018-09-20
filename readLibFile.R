@@ -15,7 +15,7 @@ source("canonicalFormat.R")
 source("cleanLib.R")
 
 readLibFile <- function(file, format = c("peakview", "openswath", "skyline", "spectronaut"),
-                        type = c("spectrum", "hydro") ,clean = TRUE, ...)
+                        type = c("spectrum", "hydro") ,clean = FALSE, ...)
 {
   
   seps = c("\t",",")
