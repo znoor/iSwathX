@@ -49,6 +49,7 @@ readLibFile <- function(file, format = c("peakview", "openswath", "skyline", "sp
   if(inherits(dat,"try-error"))
     stop("Error with creating canonical format")
   
+   if(clean)
   dat <- try(cleanLib(dat, clean=clean, ...))
   
   if(inherits(dat,"try-error"))
