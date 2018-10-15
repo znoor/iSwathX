@@ -7,8 +7,8 @@
 #' @return a list of boxplot and correlation dataframe for the ion intensity ranking correlation
 #' between the two libraries
 #' @examples
-#' file1 <- paste(system.file("files",package="SwathXtend"),"Lib2.txt",sep="/")
-#' file2 <- paste(system.file("files",package="SwathXtend"),"Lib3.txt",sep="/")
+#' file1 <- paste(system.file("files",package="iSwathX"),"Lib2.txt",sep="/")
+#' file2 <- paste(system.file("files",package="iSwathX"),"Lib3.txt",sep="/")
 #' dat1 <- normalise(readLibFile(file1))
 #' dat2 <- normalise(readLibFile(file2))
 #' list.intensitycor <- computeIntensityCor(dat1, dat2)
