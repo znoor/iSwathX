@@ -6,7 +6,7 @@
 #' spectrum library. One of "peakview" (default), "openswath", "skyline" and "spectronaut"
 #' #' @return a data frame of the library in canonical format
 #' @examples
-#' file <- paste(system.file("files",package="SwathXtend"),"Lib1.txt",sep="/")
+#' file <- paste(system.file("files",package="iSwathX"),"Lib1.txt",sep="/")
 #' dat <- read.delim2(file,sep="\t",stringsAsFactor = FALSE, header=TRUE)
 #' dat <- try(canonicalFormat(dat, format = "peakview"))
 ############################################################################ 

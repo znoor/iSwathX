@@ -3,7 +3,7 @@
 #' @param datlib a data frame for a spectrum library
 #' @return a list containing information related to proteins, peptides and transitions in the reference library
 #' @examples
-#' libfile <- paste(system.file("files",package="SwathXtend"),"Lib2.txt",sep="/")
+#' libfile <- paste(system.file("files",package="iSwathX"),"Lib2.txt",sep="/")
 #' datlib <- readLibFile(libfile)
 #' summary <- libSummary(datlib)
 ############################################################################

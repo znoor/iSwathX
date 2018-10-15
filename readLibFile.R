@@ -7,7 +7,7 @@
 #' @param ... named arguments to be passed to the cleanLib function.
 #' @return a data frame of the library with cleaning process
 #' @examples 
-#' file <- paste(system.file("files",package="SwathXtend"),"Lib1.txt",sep="/")
+#' file <- paste(system.file("files",package="iSwathX"),"Lib1.txt",sep="/")
 #' dat <- readLibFile(file)
 ############################################################################ 
 

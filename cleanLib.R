@@ -17,7 +17,7 @@
 #' @return a data frame of a cleaned spectrum library by the specified
 #' criteria
 #' @examples 
-#' file <- paste(system.file("files",package="SwathXtend"),"Lib1.txt",sep="/")
+#' file <- paste(system.file("files",package="iSwathX"),"Lib1.txt",sep="/")
 #' dat <- read.delim2(file,sep="\t",header=TRUE,stringsAsFactors=FALSE)
 #' dat <- canonicalFormat(dat)
 #' dat <- cleanLib(dat)

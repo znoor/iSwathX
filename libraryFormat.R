@@ -5,7 +5,7 @@
 #' (default as 18)
 #' @return a data frame with specified number of columns
 #' @examples 
-#' libfile <- paste(system.file("files",package="SwathXtend"),"Lib2.txt",sep="/")
+#' libfile <- paste(system.file("files",package="iSwathX"),"Lib2.txt",sep="/")
 #' datlib <- readLibFile(libfile)
 #' dat <- libraryFormat(datlib)
 ############################################################################ 
