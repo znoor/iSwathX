@@ -10,7 +10,7 @@
 #' ExtNew, corresponding to the common spectra of base library, common
 #' spectra of external library and new spectra of external library 
 #' @examples 
-#' libfiles <- paste(system.file("files",package="SwathXtend"),
+#' libfiles <- paste(system.file("files",package="iSwathX"),
 #'                              c("Lib2.txt","Lib3.txt"),sep="/")
 #' datBaseLib <- readLibFile(libfiles[1], clean=TRUE, nomod=FALSE, nomc=FALSE)
 #' datExtLib <- readLibFile(libfiles[2], clean=TRUE, nomod=FALSE, nomc=FALSE) 
