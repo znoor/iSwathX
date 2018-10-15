@@ -5,7 +5,7 @@
 #' @param k a numeric value specifying the fold number of the cross validation
 #' @return a model object based on the best RMSE average on cross validation
 #' @examples 
-#' libfiles <- paste(system.file("files",package="SwathXtend"),
+#' libfiles <- paste(system.file("files",package="iSwathX"),
 #'                              c("Lib2.txt","Lib3.txt"),sep="/")
 #' datBaseLib <- readLibFile(libfiles[1], clean=TRUE, nomod=FALSE, nomc=FALSE)
 #' datExtLib <- readLibFile(libfiles[2], clean=TRUE, nomod=FALSE, nomc=FALSE) 
