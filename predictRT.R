@@ -11,7 +11,7 @@
 #' @return a data frame which has the same spectra as datExtLibNewPart but with
 #' new predicted retention time
 #' @examples 
-#' libfiles <- paste(system.file("files",package="SwathXtend"),
+#' libfiles <- paste(system.file("files",package="iSwathX"),
 #'                              c("Lib2.txt","Lib3.txt"),sep="/")
 #' datBaseLib <- readLibFile(libfiles[1], clean=TRUE, nomod=FALSE, nomc=FALSE)
 #' datExtLib <- readLibFile(libfiles[2], clean=TRUE, nomod=FALSE, nomc=FALSE) 
