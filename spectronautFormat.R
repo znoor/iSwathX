@@ -5,7 +5,7 @@
 #' sprectrum (default)
 #' @return a data frame of a spectrum library in Spectronaut format
 #' @examples
-#' libfile <- paste(system.file("files",package="SwathXtend"),"Lib2.txt",sep="/")
+#' libfile <- paste(system.file("files",package="iSwathX"),"Lib2.txt",sep="/")
 #' dat <- readLibFile(libfile)
 #' dat <- spectronautFormat(dat)
 ############################################################################
