@@ -6,7 +6,7 @@
 #' One of "top" (default) or "total".
 #' @return a data frame with normalised ion intensity
 #' @examples 
-#' file <- paste(system.file("files",package="SwathXtend"),"Lib2.txt",sep="/")
+#' file <- paste(system.file("files",package="iSwathX"),"Lib2.txt",sep="/")
 #' dat <- normalise(readLibFile(file))
 ############################################################################     
 
