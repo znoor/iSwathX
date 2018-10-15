@@ -9,7 +9,7 @@
 #' @return two .png files of RT correlation and RT residual plots will be saved
 #' under current working directory. a list of training set dataframe, RTcor plot, RT residual plot, and RT correlation value.
 #' @examples
-#' libfiles <- paste(system.file("files",package="SwathXtend"),
+#' libfiles <- paste(system.file("files",package="iSwathX"),
 #'    c("Lib2.txt","Lib3.txt"),sep="/")
 #' datBaseLib <- readLibFile(libfiles[1])
 #' datExtLib <- readLibFile(libfiles[2])
