@@ -5,8 +5,8 @@
 #' @return a data frame of the external library with newly consolidated
 #' protein accessions based on the base library. 
 #' @examples 
-#' file1 <- paste(system.file("files",package="SwathXtend"),"Lib1.txt",sep="/")
-#' file2 <- paste(system.file("files",package="SwathXtend"),"Lib2.txt",sep="/")
+#' file1 <- paste(system.file("files",package="iSwathX"),"Lib1.txt",sep="/")
+#' file2 <- paste(system.file("files",package="iSwathX"),"Lib2.txt",sep="/")
 #' datBaseLib <- readLibFile(file1)
 #' datExtLib <- readLibFile(file2)
 #' dat <- consolidateAccession(datBaseLib, datExtLib)
