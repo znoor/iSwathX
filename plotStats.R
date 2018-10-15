@@ -5,7 +5,7 @@
 #' @param ... arguments to pass onto cleanLib function
 #' @return a list of ggplot objects of statistical plots of the two libraries
 #' @examples
-#' libfiles <- paste(system.file("files",package="SwathXtend"),c("Lib2.txt","Lib3.txt"),sep="/")
+#' libfiles <- paste(system.file("files",package="iSwathX"),c("Lib2.txt","Lib3.txt"),sep="/")
 #' datBaseLib <- readLibFile(libfiles[1])
 #' datExtLib <- readLibFile(libfiles[2])
 #' list.statplots <- plotStats(datBaseLib, datExtLib)
