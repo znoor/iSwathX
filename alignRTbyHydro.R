@@ -10,9 +10,9 @@
 #' One of "HydroSequence" (default) and "Hydro".
 #' @return a data frame of the dat2 with the newly aligned retention time
 #' @examples
-#' file1 <- paste(system.file("files",package="SwathXtend"),"Lib2.txt",sep="/")
-#' file2 <- paste(system.file("files",package="SwathXtend"),"Lib3.txt",sep="/")
-#' file3 <- paste(system.file("files",package="SwathXtend"),"hydroIndex.txt",sep="/")
+#' file1 <- paste(system.file("files",package="iSwathX"),"Lib2.txt",sep="/")
+#' file2 <- paste(system.file("files",package="iSwathX"),"Lib3.txt",sep="/")
+#' file3 <- paste(system.file("files",package="iSwathX"),"hydroIndex.txt",sep="/")
 #' dat1 <- normalise(readLibFile(file1))
 #' dat2 <- normalise(readLibFile(file2))
 #' datHydroIndex <- read.delim2(file3,sep="\t",header=TRUE,as.is=TRUE)
