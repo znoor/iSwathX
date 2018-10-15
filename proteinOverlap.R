@@ -6,7 +6,7 @@
 #' is True.
 #' @return A vector of protein accession that the two libraries overlap
 #' @examples 
-#' libfiles <- paste(system.file("files",package="SwathXtend"),
+#' libfiles <- paste(system.file("files",package="iSwathX"),
 #' 					c("Lib2.txt","Lib3.txt"),sep="/")
 #' datBaseLib <- readLibFile(libfiles[1])
 #' datExtLib <- readLibFile(libfiles[2])
