@@ -10,7 +10,7 @@
 #' dat <- libraryFormat(datlib)
 ############################################################################ 
 
-libraryFormat <- function(datlib)
+libraryFormat <- function(datlib) 
 {
   
   inclcols = c("Q1",
