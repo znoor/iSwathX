@@ -82,7 +82,7 @@ computeIntensityCor <- function(dat1,dat2, method = "spearman", wb=NULL, sheet=N
     
     
     if(length(list.ms2) > 1){
-      allCor<-unlist(sapply(list.ms2, FUN=function(x)
+      allCordata<-unlist(sapply(list.ms2, FUN=function(x)
       {if(nrow(x)>1 & length(unique(x[,3]))>1 & length(unique(x[,4]))>1) {cor(x[,3],x[,4],method=method)}}) ) 
       
       ionCorGS<-NULL; rm(ionCorGS);
@@ -90,7 +90,7 @@ computeIntensityCor <- function(dat1,dat2, method = "spearman", wb=NULL, sheet=N
       
       
       ioncordata <- data.frame(ionCorGS)
-       allCordata <- data.frame(allCor)
+      allCordata <- as.data.frame(allCordata)
     
        # png("IonIntensityCorrelationggplot.png")
        plotg <- ggplot(data = allCordata, aes(x= "", y = allCordata)) +
@@ -115,5 +115,5 @@ computeIntensityCor <- function(dat1,dat2, method = "spearman", wb=NULL, sheet=N
   }
   }
   
-  list(allCor, mm, plotg)
+  list(allCordata, mm, plotg)
 }
