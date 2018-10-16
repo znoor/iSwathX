@@ -1,6 +1,6 @@
 
 ###########################################################################
-#' Spectrum library cleanining
+#' Spectrum library cleanining 
 #' @param datLib a data frame for a spectrum library
 #' @param nomod a logic value, representing if the modified peptides and its
 #' fragment ions will be removed. True (default) means will be removed.
