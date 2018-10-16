@@ -11,7 +11,7 @@
 #' dat <- readLibFile(file)
 ############################################################################ 
 
-source("canonicalFormat.R")
+source("canonicalFormat.R") 
 source("cleanLib.R")
 
 readLibFile <- function(file, format = c("peakview", "openswath", "skyline", "spectronaut"),
