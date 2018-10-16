@@ -12,7 +12,7 @@
 
 ### LIBRARY FORMAT FILE (PEAK VIEW)
 
-peakviewFormat <- function(datlib, nodup = TRUE)
+peakviewFormat <- function(datlib, nodup = TRUE) 
 {
   
   
