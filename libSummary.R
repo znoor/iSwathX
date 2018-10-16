@@ -1,5 +1,5 @@
 ###########################################################################
-#' Generate a library summary
+#' Generate a library summary 
 #' @param datlib a data frame for a spectrum library
 #' @return a list containing information related to proteins, peptides and transitions in the reference library
 #' @examples
