@@ -1,6 +1,6 @@
 
 ###########################################################################
-#' Standardise a sprectrum library data frame
+#' Standardise a sprectrum library data frame 
 #' @param dat a data frame of a spectrum library
 #' @param format a character string, representing the format of the input
 #' spectrum library. One of "peakview" (default), "openswath", "skyline" and "spectronaut"
