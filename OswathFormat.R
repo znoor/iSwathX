@@ -14,7 +14,7 @@
 
 source("libraryFormat.R")
 
-OswathFormat <- function(dat, nodup = TRUE)
+OswathFormat <- function(dat, nodup = TRUE) 
 {
   if(nodup) dat <- dat[!duplicated(dat),]
   
