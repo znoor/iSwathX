@@ -163,16 +163,16 @@ shinyServer(function(input, output, session) {
                                                                # filename <-  paste("Combined", input$autoseedlib$name,input$autoextlib$name , sep = "_")
                                                                
                                                                if(input$autooutputlibformat == "PeakView"){
-                                                                 write.csv(x = peakviewFormat(data), file = file, row.names = F)
+                                                                 write.csv(x = peakviewFormat(data), file = file, row.names = F, na = "")
                                                                } else if(input$autooutputlibformat == "OpenSwath")
                                                                {
-                                                                 write.csv(x = OswathFormat(data), file = file, row.names = F)
+                                                                 write.csv(x = OswathFormat(data), file = file, row.names = F, na = "")
                                                                } else if(input$autooutputlibformat == "Skyline")
                                                                {
-                                                                 write.csv(x = skylineFormat(data), file = file, row.names = F)
+                                                                 write.csv(x = skylineFormat(data), file = file, row.names = F, na = "")
                                                                } else # spectronaut
                                                                {
-                                                                 write.csv(x = spectronautFormat(data), file = file, row.names = F)
+                                                                 write.csv(x = spectronautFormat(data), file = file, row.names = F, na = "")
                                                                }
                                                                
                                                                }
@@ -700,19 +700,19 @@ shinyServer(function(input, output, session) {
    data = lib1clean()
    
    if(input$inputseedlibformat == "PeakView"){
-     write.csv(x = peakviewFormat(data), file = file, row.names = F)
+     write.csv(x = peakviewFormat(data), file = file, row.names = F, na = "")
      
    } else if(input$inputseedlibformat == "OpenSwath")
    {
-     write.csv(x = OswathFormat(data), file = file, row.names = F)
+     write.csv(x = OswathFormat(data), file = file, row.names = F, na = "")
      
    } else if(input$inputseedlibformat == "Skyline")
    {
-     write.csv(x = skylineFormat(data), file = file, row.names = F)
+     write.csv(x = skylineFormat(data), file = file, row.names = F, na = "")
      
    } else # spectronaut
    {
-     write.csv(x = spectronautFormat(data), file = file, row.names = F)
+     write.csv(x = spectronautFormat(data), file = file, row.names = F, na = "")
    }
    
  }
@@ -726,19 +726,19 @@ shinyServer(function(input, output, session) {
       data = lib2clean()
       
       if(input$inputextlibformat == "PeakView"){
-        write.csv(x = peakviewFormat(data), file = file, row.names = F)
+        write.csv(x = peakviewFormat(data), file = file, row.names = F, na = "")
         
       } else if(input$inputextlibformat == "OpenSwath")
       {
-        write.csv(x = OswathFormat(data), file = file, row.names = F)
+        write.csv(x = OswathFormat(data), file = file, row.names = F, na = "")
         
       } else if(input$inputextlibformat == "Skyline")
       {
-        write.csv(x = skylineFormat(data), file = file, row.names = F)
+        write.csv(x = skylineFormat(data), file = file, row.names = F, na = "")
         
       } else # spectronaut
       {
-        write.csv(x = spectronautFormat(data), file = file, row.names = F)
+        write.csv(x = spectronautFormat(data), file = file, row.names = F, na = "")
       }
       
     }
@@ -757,16 +757,16 @@ shinyServer(function(input, output, session) {
                                                 data = data[[1]]
                                                 
                                                 if(input$outputlibformat == "PeakView"){
-                                                  write.csv(x = peakviewFormat(data), file = file, row.names = F)
+                                                  write.csv(x = peakviewFormat(data), file = file, row.names = F, na = "")
                                                 } else if(input$outputlibformat == "OpenSwath")
                                                 {
-                                                  write.csv(x = OswathFormat(data), file = file, row.names = F)
+                                                  write.csv(x = OswathFormat(data), file = file, row.names = F, na = "")
                                                 } else if(input$outputlibformat == "Skyline")
                                                 {
-                                                  write.csv(x = skylineFormat(data), file = file, row.names = F)
+                                                  write.csv(x = skylineFormat(data), file = file, row.names = F, na = "")
                                                 } else # spectronaut
                                                 {
-                                                  write.csv(x = spectronautFormat(data), file = file, row.names = F)
+                                                  write.csv(x = spectronautFormat(data), file = file, row.names = F, na = "")
                                                 }
                                                 
                                               }
