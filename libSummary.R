@@ -18,20 +18,23 @@ libSummary <- function(datlib)
   summarylist <- list()
   
   # datlib <- canonicalFormat(datlib, format = format)
-  proteinCount <- datlib[!duplicated(datlib$protein_name),]
-  peptidesCount <- datlib[!duplicated(datlib$stripped_sequence),]
+  proteinCount <- datlib[!duplicated(datlib$uniprot_id),]
+  unmodpeptidesCount <- datlib[!duplicated(datlib$stripped_sequence),]
+  modpeptidesCount <- datlib[!duplicated(datlib$modification_sequence),]
   #peptidesCount <- datlib[!duplicated(datlib$stripped_sequence),]
   #TransitionCount <- datlib[!duplicated(datlib$stripped_sequence),]
   
   if(all(is.na(proteinCount$protein_name))) {
     summarylist[["proteins"]] = paste("Proteins names are not available.")
-    summarylist[["peptides"]] = length(peptidesCount$stripped_sequence)
+    summarylist[["unmodpeptides"]] = length(unmodpeptidesCount$stripped_sequence)
+    summarylist[["modpeptides"]] = length(modpeptidesCount$modification_sequence)
     summarylist[["transitions"]] = length(datlib$frg_type)
   } else {
   
   
-  summarylist[["proteins"]] = length(proteinCount$protein_name)
-  summarylist[["peptides"]] = length(peptidesCount$stripped_sequence)
+  summarylist[["proteins"]] = length(proteinCount$uniprot_id)
+  summarylist[["unmodpeptides"]] = length(unmodpeptidesCount$stripped_sequence)
+  summarylist[["modpeptides"]] = length(modpeptidesCount$stripped_sequence)
   summarylist[["transitions"]] = length(datlib$frg_type)
   }
   
