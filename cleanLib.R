@@ -26,7 +26,7 @@
 
 source("isMissCleavaged.R")
 cleanLib <- function(datLib, clean=TRUE, intensity.cutoff=5,conf.cutoff=0.99,
-                    nomod = TRUE, nomc = FALSE, enz=c("trypsin", "gluc", "chymotrypsin") )
+                    nomod = FALSE, nomc = TRUE, enz=c("trypsin", "gluc", "chymotrypsin") )
 {
 
   enz <- match.arg(enz)
