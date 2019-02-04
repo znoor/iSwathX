@@ -585,7 +585,7 @@ var myWidth = $(window).width();
                                          # h4(tags$i("Cleaning Libraries")),
                                                  box(checkboxInput(inputId = "cleanlib",
                                                                label = "Clean Library",
-                                                               value = FALSE,
+                                                               value = TRUE,
                                                                width = '100%'),
                                                  conditionalPanel(condition = "input.cleanlib == true",
                                                                   sliderInput(inputId = "intensity",
@@ -1058,6 +1058,12 @@ var myWidth = $(window).width();
                                    mainPanel(
                                      wellPanel(style = "background-color: #ffffff;",
                                                h4(tags$i("Combined Library")),
+                                               wellPanel(h5("Library Summary"),
+
+                                                         # verbatimTextOutput(outputId = "seedlibsummary", inline = TRUE, container = div),
+                                                         verbatimTextOutput(outputId = "comblibsummary", placeholder = FALSE),
+                                                         style = "background-color: #ffffff;"),
+                                               br(),
                                              DT::dataTableOutput(outputId = "combineLib")))
                                    )
                                    ),
@@ -1370,7 +1376,8 @@ var myWidth = $(window).width();
   ))),
   fluidRow(
     column(12,
-           wellPanel(HTML("This application is built with"), strong(tags$a("RShiny", href = "http://shiny.rstudio.com/")), HTML(" and implements"), strong(tags$i("iSwathX")), HTML("package "),
+           wellPanel(HTML("This application is built with"), strong(tags$a("RShiny", href = "http://shiny.rstudio.com/")), HTML(" and implements"), strong(tags$a("iSwathX", href = "https://github.com/znoor/iSwathX/tree/master/package")), HTML("("), 
+                     strong(tags$a("Noor et al., 2018", href = "https://doi.org/10.1093/bioinformatics/bty660")), HTML(")"), HTML("package "),
                       HTML("which is based on previously available package "), 
                      strong(tags$a("SwathXtend", href = "http://bioconductor.org/packages/SwathXtend/")), HTML("("),
                      strong(tags$a("Wu et al., 2016", href = "http://www.mcponline.org/content/15/7/2501.full")), HTML(")."),
