@@ -90,17 +90,20 @@ shinyServer(function(input, output, session) {
                   
                   # if(is.numeric(lib1sumdata[["proteins"]])) {
                   paste0("Seed assay library contains \n", " Proteins = ", formatC(lib1sumdata[["proteins"]], format = "d", big.mark = ","),
-                          "\n", " Peptides = ", formatC(lib1sumdata[["peptides"]], format = "d", big.mark = ","), "\n",
+                          "\n", " Unmodified Peptides = ", formatC(lib1sumdata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
+                         " Modified Peptides = ", formatC(lib1sumdata[["modpeptides"]], format = "d", big.mark = ","), "\n",
                          " Transitions = ",formatC(lib1sumdata[["transitions"]], format = "d", big.mark = ",") ,  "\n", "\n",
                 
                          "External assay library contains \n",  " Proteins = ", formatC(lib2sumdata[["proteins"]], format = "d", big.mark = ","),
-                         "\n", " Peptides = ", formatC(lib2sumdata[["peptides"]], format = "d", big.mark = ","),  "\n",
+                         "\n", " Unmodified Peptides = ", formatC(lib2sumdata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+                         " Modified Peptides = ", formatC(lib2sumdata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
                          " Transitions = ", formatC(lib2sumdata[["transitions"]], format = "d", big.mark = ",") , "\n", "\n",
                          
                          "Retention time correlation between seed and external library = ", format(rtcorrelation[[4]], digits = 2) , "\n","\n",
                          
                          "Combined assay library contains \n", " Proteins = ", formatC(comblibdata2[["proteins"]], format = "d", big.mark = ","),
-                          "\n", " Peptides = ", formatC(comblibdata2[["peptides"]], format = "d", big.mark = ","),  "\n",
+                          "\n", " Unmodified Peptides = ", formatC(comblibdata2[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+                         " Modified Peptides = ", formatC(comblibdata2[["modpeptides"]], format = "d", big.mark = ","),  "\n",
                          " Transitions = " , formatC(comblibdata2[["transitions"]], format = "d", big.mark = ","))
                   # }
                         # else paste(lib1sumdata[["proteins"]])
@@ -307,7 +310,7 @@ shinyServer(function(input, output, session) {
     return(NULL)
   } else
   
-  readLibFile(inFile$datapath, input$libformats11, "spectrum", clean = FALSE)
+  readLibFile(inFile$datapath, input$libformats11, "spectrum", clean = TRUE)
   })
 
 #/////////////////////////////////////////////////////////////////////////////////  
@@ -334,7 +337,7 @@ shinyServer(function(input, output, session) {
     return(NULL)
     } else
   
-  readLibFile(inFile$datapath, input$libformats12, "spectrum", clean = FALSE)
+  readLibFile(inFile$datapath, input$libformats12, "spectrum", clean = TRUE)
   })
   
 #/////////////////////////////////////////////////////////////////////////////////  
@@ -834,7 +837,8 @@ shinyServer(function(input, output, session) {
     summarydata <- libSummary(seeddata)
     
    paste0("Seed assay library contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
-         "\n", " Peptides = ", formatC(summarydata[["peptides"]], format = "d", big.mark = ","),  "\n",
+         "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+         " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
          " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
    
   })
@@ -847,12 +851,29 @@ shinyServer(function(input, output, session) {
     extdata <- lib2clean()
     summarydata <- libSummary(extdata)
     paste0("External assay library contains \n", " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","), 
-           "\n", " Peptides = ", formatC(summarydata[["peptides"]], format = "d", big.mark = ","), "\n",
+           "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
+           " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","), "\n",
            " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
     
   })
   
-#//////////////////////////////////////////////////////////////////////////////////  
+#////////////////////////////////////////////////////////////////////////////////// 
+  
+#### Combined Library Summary
+  
+  output$comblibsummary <- renderText({
+    if(!is.null(lib1clean()) && !is.null(lib2clean())){
+      data = combdatalib()
+      }
+    summarydata <- libSummary(data[[1]])
+    paste0("Combined library contains \n", " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+           "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
+           " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","), "\n",
+           " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+
+  })
+  
+#////////////////////////////////////////////////////////////////////////////////// 
   
 #### Compute RT Time reactive function
   
