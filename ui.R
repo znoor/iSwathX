@@ -11,7 +11,7 @@
 
 packages <- c("shiny", "ggplot2", "dplyr", "stringr", "readr", "DT", "tools",
               "shinydashboard", "utils", "e1071", "shinyjs", "shinythemes", "shinyBS", "pryr",
-              "graphics", "ggthemes", "grid", "ggpubr", "plyr", "VennDiagram")
+              "graphics", "ggthemes", "grid", "ggpubr", "plyr", "VennDiagram", "tidyr", "dplyr")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))
 }
@@ -30,6 +30,11 @@ library(e1071)
 library(shinyjs)
 library(shinythemes)
 library(shinyBS)
+library(tidyr)
+library(dplyr)
+
+cleaned1 <- FALSE
+cleaned2 <- FALSE
 
 # Define UI for application 
 shinyUI(fluidPage(
@@ -595,7 +600,7 @@ var myWidth = $(window).width();
                                                                               value = 5,
                                                                               step = 2,
                                                                               ticks = TRUE,
-                                                                              animate = TRUE,
+                                                                              animate = F,
                                                                               width = '100%'),
                                                                   sliderInput(inputId = "confidence",
                                                                               label = "Confidence Cutoff",
@@ -604,7 +609,34 @@ var myWidth = $(window).width();
                                                                               value = 0.99,
                                                                               step = 0.01,
                                                                               ticks = TRUE,
-                                                                              animate = TRUE,
+                                                                              animate = F,
+                                                                              width = '100%'),
+                                                                  sliderInput(inputId = "productcharge",
+                                                                              label = "Max. Product Charges",
+                                                                              min = 1,
+                                                                              max = 10,
+                                                                              value = 3,
+                                                                              step = 1,
+                                                                              ticks = TRUE,
+                                                                              animate = F,
+                                                                              width = '100%'),
+                                                                  sliderInput(inputId = "precursorcharge",
+                                                                              label = "Max. Precursor Charges",
+                                                                              min = 1,
+                                                                              max = 10,
+                                                                              value = 3,
+                                                                              step = 1,
+                                                                              ticks = TRUE,
+                                                                              animate = F,
+                                                                              width = '100%'),
+                                                                  sliderInput(inputId = "fragmentnumber",
+                                                                              label = "Fragment Series Number (e.g. y3, b7)",
+                                                                              min = 1,
+                                                                              max = 10,
+                                                                              value = 3,
+                                                                              step = 1,
+                                                                              ticks = TRUE,
+                                                                              animate = F,
                                                                               width = '100%'),
                                                                   checkboxInput(inputId = "modified",
                                                                                 label = "Remove modified peptide",
@@ -627,6 +659,8 @@ var myWidth = $(window).width();
                                                                   tags$head(
                                                                     tags$style(HTML('#cleanupdate{color: #6d7983;border-color:#eaa932}'))
                                                                   ),
+                                                                  uiOutput(outputId = "clean.lib",
+                                                                           width = '100%'),
                                                                   actionButton(inputId = "cleanupdate",
                                                                                label = "Clean")
                                                                   ),
@@ -980,6 +1014,15 @@ var myWidth = $(window).width();
                                                                                    "text/comma-separated-values, text/plain",
                                                                                    ".csv")),
                                                               width = '100%'),
+                                             # h5(strong("Libraries")),
+                                             selectInput(inputId = "uselibs",
+                                                         label = "Libraries",
+                                                         choices = c("Cleaned" = "clean",
+                                                                     "Original" = "orig"),
+                                                         selected = NULL,
+                                                         multiple = F,
+                                                         selectize = T,
+                                                         width = '100%'),
                                              h5(strong("Other parameters")),
                                              uiOutput(outputId = "includelength"),
                                              checkboxInput(inputId = "inclength", 
@@ -1064,7 +1107,11 @@ var myWidth = $(window).width();
                                                          verbatimTextOutput(outputId = "comblibsummary", placeholder = FALSE),
                                                          style = "background-color: #ffffff;"),
                                                br(),
-                                             DT::dataTableOutput(outputId = "combineLib")))
+                                             DT::dataTableOutput(outputId = "combineLib"),
+                                             br(), br(), br(),
+                                             plotOutput("combplot", width = '100%')
+                                             )
+                                     )
                                    )
                                    ),
                            # tabItem(tabName = "statanalysis",
@@ -1262,7 +1309,7 @@ var myWidth = $(window).width();
                                     tabPanel(title = "Libraries Stats Plots",
                                              fluidRow(
                                                column(4, wellPanel(style = "background-color: #ffffff;",
-                                                                 h4(strong("Histogram of peptides and ions"),
+                                                                 h4(strong("Frequency distribution of peptides per protien and ions per peptide"),
                                                                     br(), br(),
                                                                     plotOutput("dvhisto", width = '100%')))
                                                     ),
