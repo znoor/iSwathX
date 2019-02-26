@@ -33,9 +33,6 @@ library(shinyBS)
 library(tidyr)
 library(dplyr)
 
-cleaned1 <- FALSE
-cleaned2 <- FALSE
-
 # Define UI for application 
 shinyUI(fluidPage(
   
