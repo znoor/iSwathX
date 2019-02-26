@@ -25,18 +25,35 @@
 
 
 source("isMissCleavaged.R")
+library(dplyr)
+library(stringr)
 cleanLib <- function(datLib, clean=TRUE, intensity.cutoff=5,conf.cutoff=0.99,
-                    nomod = FALSE, nomc = TRUE, enz=c("trypsin", "gluc", "chymotrypsin") )
+                    nomod = FALSE, nomc = TRUE, enz=c("trypsin", "gluc", "chymotrypsin"), 
+                    prec.charge = 3, prod.charge = 3
+                    , frag.number = 3
+                    )
 {
 
   enz <- match.arg(enz)
   
-  if(clean)
+  if(clean){
     dat.res <- datLib[as.numeric(datLib$relative_intensity)>
                        intensity.cutoff &
                        as.numeric(datLib$confidence) > 
                        conf.cutoff,]
-  
+    dat.res <- dat.res[dat.res$prec_z <= prec.charge,]
+    dat.res <- dat.res[dat.res$frg_z <= prod.charge,]
+    dat.res <- dat.res[dat.res$frg_nr >= frag.number,]
+   
+     # dat.res <- dat.res %>%
+    #   filter(prec_z <= prec.charge)
+    
+    # dat.res <- dat.res %>%
+    #   filter(frg_z <= prod.charge)
+    # 
+    # dat.res <- dat.res %>%
+    #   filter(frg_nr >= frag.number)
+  }
   else   dat.res <- datLib
   
   
