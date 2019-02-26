@@ -12,6 +12,16 @@
 #' @param conf.cutoff A number value to specify cut off for precursor 
 #' confidence. Only ions with confidence higher than the cut off value
 #' (default as 0.99) will be kept.
+#' @param prec.charge A number value to specify the maximum precursor
+#' charge in a library. Only peptides/precursors with charges equal or 
+#' lower than the value will be kept.
+#' @param prod.charge A number value to specify the maximum product
+#' charge in a library. Only ions with charges equal or lower than the 
+#' value will be kept.
+#' @param frag.number A number value to specify the cut off for fragment ions
+#' number in a library. Only ions equal or higher than the values will be kept 
+#' (e.g. y3/b7) 
+#' value will be kept.
 #' @param enz A character string representing the enzyme which can be one of
 #' "trypsin" (defalut), "gluc", or "chymotrypsin"
 #' @return a data frame of a cleaned spectrum library by the specified
