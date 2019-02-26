@@ -29,9 +29,12 @@ source("libSummary.R")
 
 
 shinyServer(function(input, output, session) {
+  
+  value <- reactiveVal(0)
 
   
   shinyjs::disable("apply")
+  shinyjs::disable("cleanupdate")
   shinyjs::disable("inclength")
   shinyjs::disable("downloadseedinputLibs")
   shinyjs::disable("downloadextinputLibs")
@@ -230,24 +233,53 @@ shinyServer(function(input, output, session) {
   })
 
 #////////////////////////////////////////////////////////////////////////////////////////    
+  ### Seed Library Read
   
   seedlibdata <- eventReactive(input$apply, {
-    lib1clean()
+    inFile <- input$seedlib
+    
+    if(is.null(inFile)) {
+      
+      return(NULL)
+    } else
+      
+      lib1 <- readLibFile(inFile$datapath, input$libformats11, "spectrum", clean = FALSE)
+    return(lib1)
   })
+  
+  ### External Library Read
   extlibdata <- eventReactive(input$apply,{
-    lib2clean()
+    inFile <- input$extlib
+    
+    if(is.null(inFile)){
+      return(NULL)
+    } else
+      
+      lib2 <- readLibFile(inFile$datapath, input$libformats12, "spectrum", clean = FALSE)
+    return(lib2)
   })
 
 #//////////////////////////////////////////////////////////////////////////////////
   
 #### Clean button for cleaning update
   
-  # seedcleanlibdata <- eventReactive(input$cleanupdate, {
-  #   lib1clean()
-  # })
-  # extcleanlibdata <- eventReactive(input$cleanupdate,{
-  #   lib2clean()
-  # })
+  seedcleanlibdata <- eventReactive(input$cleanupdate, {
+    clib1 <- lib1clean()
+    # lib1 <- seedlibdata()
+    # clib1 <- cleanLib(lib1, TRUE, intensity.cutoff = input$intensity,
+    #          conf.cutoff = input$confidence, prec.charge = input$precursorcharge, prod.charge = input$productcharge,
+    #          nomod = input$modified, frag.number = input$fragmentnumber, nomc = input$misscleavage, enz = input$enzyme)
+    return(clib1)
+    # return(clib1)
+  })
+  extcleanlibdata <- eventReactive(input$cleanupdate,{
+    clib2 <- lib2clean()
+    # lib2 <- extlibdata()
+    # clib2 <- cleanLib(lib2, TRUE, intensity.cutoff = input$intensity,
+    #          conf.cutoff = input$confidence, prec.charge = input$precursorcharge, prod.charge = input$productcharge,
+    #          nomod = input$modified, frag.number = input$fragmentnumber, nomc = input$misscleavage, enz = input$enzyme)
+    return(clib2)
+  })
   
   #//////////////////////////////////////////////////////////////////////////////////
   
@@ -301,16 +333,15 @@ shinyServer(function(input, output, session) {
 #### Seed Library reading reactive
   
   lib1read <- reactive({
-    
-    
-    inFile <- input$seedlib
-  
+
+        inFile <- input$seedlib
+
   if(is.null(inFile)) {
-    
+
     return(NULL)
   } else
-  
-  readLibFile(inFile$datapath, input$libformats11, "spectrum", clean = TRUE)
+
+  readLibFile(inFile$datapath, input$libformats11, "spectrum", clean = FALSE)
   })
 
 #/////////////////////////////////////////////////////////////////////////////////  
@@ -321,23 +352,29 @@ shinyServer(function(input, output, session) {
   {
     lib1 <- lib1read()
     cleanLib(lib1, TRUE, intensity.cutoff = input$intensity,
-             conf.cutoff = input$confidence, nomod = input$modified,
-             nomc = input$misscleavage, enz = input$enzyme)
+             conf.cutoff = input$confidence, prec.charge = input$precursorcharge, prod.charge = input$productcharge,
+             nomod = input$modified, frag.number = input$fragmentnumber, nomc = input$misscleavage, enz = input$enzyme)
+  })
+  
+  
+  observeEvent(input$cleanupdate, {
+    newValue <- value() + 1     
+    value(newValue)             
   })
   
 
 #/////////////////////////////////////////////////////////////////////////////////
   
 #### External Library Reading reactive
-  
+
   lib2read <- reactive({
     inFile <- input$extlib
-  
+
   if(is.null(inFile)){
     return(NULL)
     } else
-  
-  readLibFile(inFile$datapath, input$libformats12, "spectrum", clean = TRUE)
+
+  readLibFile(inFile$datapath, input$libformats12, "spectrum", clean = FALSE)
   })
   
 #/////////////////////////////////////////////////////////////////////////////////  
@@ -348,24 +385,37 @@ shinyServer(function(input, output, session) {
   {
     lib2 <- lib2read()
     cleanLib(lib2, TRUE, intensity.cutoff = input$intensity,
-             conf.cutoff = input$confidence, nomod = input$modified,
-             nomc = input$misscleavage, enz = input$enzyme)
+             conf.cutoff = input$confidence, prec.charge = input$precursorcharge, prod.charge = input$productcharge,
+             nomod = input$modified, frag.number = input$fragmentnumber, nomc = input$misscleavage, enz = input$enzyme)
   })
 
 #/////////////////////////////////////////////////////////////////////////////////
 
 #### Enable apply button    
   output$readapply <- renderUI({
-    if (is.null(lib1clean()) && is.null(lib2clean())) return()
+    
+    inFile1 <- input$seedlib
+    inFile2 <- input$extlib
+    if(is.null(inFile1) && is.null(inFile2)) return()
+    
+    # if (is.null(lib1read()) && is.null(lib2read())) return()
     shinyjs::enable("apply")
   })  
   
 #/////////////////////////////////////////////////////////////////////////////////
   
+  #### Enable clean button    
+  output$clean.lib <- renderUI({
+    if (is.null(seedlibdata()) && is.null(extlibdata())) return()
+    shinyjs::enable("cleanupdate")
+  })  
+  
+  #/////////////////////////////////////////////////////////////////////////////////
+  
   #### Enable downloadseed button    
   output$downloadseed <- renderUI({
-    if (is.null(lib1clean()) && is.null(lib2clean())) return()
-    else if(!is.null(lib1clean()))
+    if (is.null(seedlibdata()) && is.null(extlibdata())) return()
+    else if(!is.null(seedlibdata()))
     shinyjs::enable("downloadseedinputLibs")
   })  
   
@@ -373,8 +423,8 @@ shinyServer(function(input, output, session) {
   
   #### Enable downloadseed button    
   output$downloadext <- renderUI({
-    if (is.null(lib1clean()) && is.null(lib2clean())) return()
-    else if(!is.null(lib2clean()))
+    if (is.null(seedlibdata()) && is.null(seedlibdata())) return()
+    else if(!is.null(extlibdata()))
       shinyjs::enable("downloadextinputLibs")
   })  
   
@@ -406,181 +456,285 @@ shinyServer(function(input, output, session) {
   
 #### Seed Library Data Table
   
-  output$seedlibcontents <- DT::renderDataTable({
-    
-    if (!is.null(lib1clean())){
-    withProgress(message = "Generating seed library table", style = "notification", value = 0.1, {
-      for(i in 1:1) {
-        data = seedlibdata()
-        incProgress(0.1, detail = "reading library")
-        Sys.sleep(0.25)
-      }
-    })
-    
-    DT::datatable(data = data,
-                  options = list(pageLength = 10, 
-                                 scrollX = T, 
-                                 scrollY = "500px", 
-                                 scrollCollapse = T, 
-                                 autoWidth = T,
-                                 scroller.loadingIndicator = T),
-                  caption = input$seedlib$name
-                  ) 
+  observeEvent(input$apply, {
+    output$seedlibcontents <- DT::renderDataTable({
+      withProgress(message = "Generating seed library table", style = "notification", value = 0.1, {
+        for(i in 1:1) {
+          data = seedlibdata()
+          incProgress(0.1, detail = "reading library")
+          Sys.sleep(0.25)
+        }
+      })
+      DT::datatable(data = data,
+                    options = list(pageLength = 10,
+                                   scrollX = T,
+                                   scrollY = "500px",
+                                   scrollCollapse = T,
+                                   autoWidth = T,
+                                   scroller.loadingIndicator = T),
+                    caption = input$seedlib$name
+      )
+
+  })
+  })
+  
+  observeEvent(input$cleanupdate,{
+    output$seedlibcontents <- DT::renderDataTable({
+    if (!is.null(seedcleanlibdata())){
+      withProgress(message = "Generating seed library table", style = "notification", value = 0.1, {
+        for(i in 1:1) {
+          data = seedcleanlibdata()
+          incProgress(0.1, detail = "reading library")
+          Sys.sleep(0.25)
+        }
+      })
+      DT::datatable(data = data,
+                    options = list(pageLength = 10,
+                                   scrollX = T,
+                                   scrollY = "500px",
+                                   scrollCollapse = T,
+                                   autoWidth = T,
+                                   scroller.loadingIndicator = T),
+                    caption = input$seedlib$name
+      )
     }
-    else return()
-})
+  })
+  })
 
   
 #/////////////////////////////////////////////////////////////////////////////////  
   
 #### External Library Data Table 
   
-  output$extlibcontents <- DT::renderDataTable({
-   
-    if (!is.null(lib2clean())){ 
-    withProgress(message = "Generating external library table", style = "notification", value = 0.1, {
-      for(i in 1:1) {
-        data = extlibdata()
-        incProgress(0.1, detail = "reading library")
-        Sys.sleep(0.25)
+  
+  observeEvent(input$apply, {
+    output$extlibcontents <- DT::renderDataTable({
+      withProgress(message = "Generating external library table", style = "notification", value = 0.1, {
+        for(i in 1:1) {
+          data = extlibdata()
+          incProgress(0.1, detail = "reading library")
+          Sys.sleep(0.25)
+        }
+      })
+      DT::datatable(data = data,
+                    options = list(pageLength = 10,
+                                   scrollX = T,
+                                   scrollY = "500px",
+                                   scrollCollapse = T,
+                                   autoWidth = T,
+                                   scroller.loadingIndicator = T),
+                    caption = input$extlib$name
+      )
+      
+    })
+  })
+  
+  observeEvent(input$cleanupdate,{
+    output$extlibcontents <- DT::renderDataTable({
+      if (!is.null(extcleanlibdata())){
+        withProgress(message = "Generating external library table", style = "notification", value = 0.1, {
+          for(i in 1:1) {
+            data = extcleanlibdata()
+            incProgress(0.1, detail = "reading library")
+            Sys.sleep(0.25)
+          }
+        })
+        DT::datatable(data = data,
+                      options = list(pageLength = 10,
+                                     scrollX = T,
+                                     scrollY = "500px",
+                                     scrollCollapse = T,
+                                     autoWidth = T,
+                                     scroller.loadingIndicator = T),
+                      caption = input$extlib$name
+        )
       }
     })
+  })
+
+#///////////////////////////////////////////////////////////////////////////////// 
+  
+#### Comb Lib Plot
+  
+  output$combplot <- renderPlot({
     
-    DT::datatable(data = data,
-                  options = list(pageLength = 10,
-                                 scrollX = T, 
-                                 scrollY = "500px", 
-                                 scrollCollapse = T, 
-                                 autoWidth = T,
-                                 scroller.loadingIndicator = T),
-                  caption = input$extlib$name
-                  )
+    if(!is.null(seedlibdata()) && !is.null(extlibdata())) {
+      withProgress(message = "Generating combined library plot", style = "notification", value = 0.1, {
+        for(i in 1:1) {
+          data = combdatalib()
+          data <- data[[1]]
+          # x<-aggregate(lib1data$uniprot_id, by=list(Protein=lib1data$uniprot_id, Peptide=lib1data$stripped_sequence), 
+          #              FUN=function(x){length(x)})
+          # y<-aggregate(x$Peptide, by=list(Protein=x$Protein), FUN=function(x){length(x)})
+          
+          data2 <- data[!duplicated(data$modification_sequence),]
+          x <- aggregate(x = data2$modification_sequence, by = list(Protein = data2$uniprot_id, charge = data2$prec_z),
+                         FUN = function(x) {length(x)})
+          x$charge <- as.character(x$charge)
+          breaks1 <- pretty(range(x$x), n = nclass.FD(x$x), min.n = 1)
+          bwidth1 <- breaks1[3] - breaks1[1]
+          
+          x2 <- aggregate(x = data$modification_sequence, by = list(Peptide = data$modification_sequence, 
+                                                                        frg_type = data$frg_type), FUN = function(x2) {length(x2)})
+          breaks2 <- pretty(range(x2$x), n = nclass.FD(x2$x), min.n = 1)
+          bwidth2 <- breaks2[3] - breaks2[1]
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+      
+      p1 <- ggplot(data = x, aes(x = x, fill = charge)) +
+        geom_histogram(binwidth = bwidth1) +
+        labs(x ="Number of Peptides", y = "Number of Proteins") +
+        # scale_y_continuous(name = "Frequency") +
+        scale_fill_brewer("Precursor Charge", palette = "YlOrRd")+
+        theme_classic() +
+        theme(plot.title = element_text(size = 14, face = "bold"),
+              axis.title = element_text(size = 11, face = "bold"),
+              axis.text.x = element_text(face = "bold", size = 12),
+              axis.text.y = element_text(face= "bold", size = 12)) 
+      
+      p2 <- ggplot(data = x2, aes(x = x, fill = frg_type)) +
+        geom_histogram(binwidth = bwidth2) +
+        labs(x ="Number of Ions", y = "Number of Peptides") +
+        scale_fill_brewer("Fragment Type", palette = "PuRd") +
+        # scale_fill_manual(values = c("#eeba30", "#ae0001")) +
+        # scale_y_continuous(name = "Frequency") +
+        # scale_fill_gradient("Frequency", low = "blue", high = "red")+
+        theme_classic() +
+        theme(plot.title = element_text(size = 14, face = "bold"),
+              axis.title = element_text(size = 11, face = "bold"),
+              axis.text.x = element_text(face = "bold", size = 12),
+              axis.text.y = element_text(face= "bold", size = 12)) 
+      
+      p <- annotate_figure(ggarrange(p1, p2, ncol = 2), top = "Frequency distribution of Peptides per Protein and Ions per Peptide")
+      print(p)
+      
+      filepath <- getwd()
+      filepath2 <- paste0(filepath,"/graphs")
+      ggsave("Combined_library_plot.png", width = 8, height = 5, path = filepath2)
+      
     } else return()
+    
   })
 
 #/////////////////////////////////////////////////////////////////////////////////  
-  
+    
 #### Seed Lib Plot
 
-   output$lib1plot <- renderPlot({
-     
-     if (!is.null(lib1clean())){
+ output$lib1plot <- renderPlot({
+   
+   if(value() == 1)
+     lib1data = seedcleanlibdata()
+   else
+     lib1data = seedlibdata()
+   
+     if (!is.null(lib1data)){
      withProgress(message = "Generating seed library plot", style = "notification", value = 0.1, {
        for(i in 1:1) {
-         lib1data <- seedlibdata()
-         x<-aggregate(lib1data$uniprot_id, by=list(Protein=lib1data$uniprot_id, Peptide=lib1data$stripped_sequence), 
-                      FUN=function(x){length(x)})
-         y<-aggregate(x$Peptide, by=list(Protein=x$Protein), FUN=function(x){length(x)})
+         lib1data2 <- lib1data[!duplicated(lib1data$modification_sequence),]
+         x <- aggregate(x = lib1data2$modification_sequence, by = list(Protein = lib1data2$uniprot_id, 
+                                                                       charge = lib1data2$prec_z), FUN = function(x) {length(x)})
+         x$charge <- as.character(x$charge)
+         breaks1 <- pretty(range(x$x), n = nclass.FD(x$x), min.n = 1)
+         bwidth1 <- breaks1[3] - breaks1[1]
+         
+         x2 <- aggregate(x = lib1data$modification_sequence, by = list(Peptide = lib1data$modification_sequence, 
+                                                                       frg_type = lib1data$frg_type), FUN = function(x2) {length(x2)})
+         breaks2 <- pretty(range(x2$x), n = nclass.FD(x2$x), min.n = 1)
+         bwidth2 <- breaks2[2] - breaks2[1]
+         
          incProgress(0.1, detail = "plotting")
          Sys.sleep(0.25)
        }
      })
-       
-       p1 <- ggplot(data = x, aes(x = x)) +
-         geom_histogram(aes(fill = ..count..), binwidth = 5) +
-         labs(x ="Number of ions per peptide") +
-         scale_y_continuous(name = "Frequency") +
-         scale_fill_gradient("Frequency", low = "blue", high = "red")+
+       p1 <- ggplot(data = x, aes(x = x, fill = charge)) +
+         geom_histogram(binwidth = bwidth1) +
+         labs(x ="Number of Peptides", y = "Number of Proteins") +
+         # scale_y_continuous(name = "Frequency") +
+         scale_fill_brewer("Precursor Charge", palette = "YlOrRd")+
          theme_classic() +
          theme(plot.title = element_text(size = 14, face = "bold"),
                axis.title = element_text(size = 11, face = "bold"),
                axis.text.x = element_text(face = "bold", size = 12),
                axis.text.y = element_text(face= "bold", size = 12)) 
-       
-       p2 <- ggplot(data = y, aes(x = x)) +
-         geom_histogram(aes(fill = ..count..), binwidth = 5) +
-         labs(x ="Number of peptides per protein") +
-         scale_y_continuous(name = "Frequency") +
-         scale_fill_gradient("Frequency", low = "blue", high = "red")+
+       p2 <- ggplot(data = x2, aes(x = x, fill = frg_type)) +
+         geom_histogram(binwidth = bwidth2) +
+         labs(x ="Number of Ions", y = "Number of Peptides") +
+         scale_fill_brewer("Fragment Type", palette = "PuRd") +
          theme_classic() +
          theme(plot.title = element_text(size = 14, face = "bold"),
                axis.title = element_text(size = 11, face = "bold"),
                axis.text.x = element_text(face = "bold", size = 12),
                axis.text.y = element_text(face= "bold", size = 12)) 
-       
-       p <- ggarrange(p1, p2, ncol = 2)
+       p <- annotate_figure(ggarrange(p1, p2, ncol = 2), top = "Frequency distribution of Peptides per Protein and Ions per Peptide", fig.lab.face = "bold")
        print(p)
-       
        filepath <- getwd()
        filepath2 <- paste0(filepath,"/graphs")
        ggsave("Seed_library_plot.png", width = 8, height = 5, path = filepath2)
-       
-       
-       
-       
-    # Relative_Intensity <- lib1data$relative_intensity
-    # Retention_Time <- lib1data$RT_detected
-    # mass_to_charge <- lib1data$frg_z
-    # Fragment_Type <- factor(lib1data$frg_type)
-    # libplot <- ggplot(data = lib1data, aes(x = Retention_Time, 
-    #                             y = Relative_Intensity, 
-    #                             #z = mass_to_charge 
-    #                             col = Fragment_Type)) + 
-    #   geom_line()
-    # libplot + theme(panel.background = element_rect(fill = 'white', colour = 'red'))
-     }else return()
-  })
+     }
+   })
 
   
 #/////////////////////////////////////////////////////////////////////////////////  
   
 #### External Library Plot  
-  
+ 
  output$lib2plot <- renderPlot({
    
-   if (!is.null(lib2clean)){
+   if(value() == 1)
+     lib2data = extcleanlibdata()
+   else
+     lib2data = extlibdata() 
+   
+  if (!is.null(lib2data)){
    withProgress(message = "Generating external library plot", style = "notification", value = 0.1, {
      for(i in 1:1) {
-       lib2data <- extlibdata()
-       x<-aggregate(lib2data$uniprot_id, by=list(Protein=lib2data$uniprot_id, Peptide=lib2data$stripped_sequence), 
-                    FUN=function(x){length(x)})
-       y<-aggregate(x$Peptide, by=list(Protein=x$Protein), FUN=function(x){length(x)})
+       lib2data2 <- lib2data[!duplicated(lib2data$modification_sequence),]
+       x <- aggregate(x = lib2data2$modification_sequence, by = list(Protein = lib2data2$uniprot_id, 
+                                                                   charge = lib2data2$prec_z), FUN = function(x) {length(x)})
+       x$charge <- as.character(x$charge)
+       breaks1 <- pretty(range(x$x), n = nclass.FD(x$x), min.n = 1)
+       bwidth1 <- breaks1[3] - breaks1[1]
+     x2 <- aggregate(x = lib2data$modification_sequence, by = list(Peptide = lib2data$modification_sequence, 
+                                                                     frg_type = lib2data$frg_type), FUN = function(x2) {length(x2)})
+       breaks2 <- pretty(range(x2$x), n = nclass.FD(x2$x), min.n = 1)
+       bwidth2 <- breaks2[2] - breaks2[1]
+       
        incProgress(0.1, detail = "plotting")
        Sys.sleep(0.25)
      }
    })
-     
-     p1 <- ggplot(data = x, aes(x = x)) +
-       geom_histogram(aes(fill = ..count..), binwidth = 5) +
-       labs(x ="Number of ions per peptide") +
-       scale_y_continuous(name = "Frequency") +
-       scale_fill_gradient("", low = "blue", high = "red")+
+     p1 <- ggplot(data = x, aes(x = x, fill = charge)) +
+       geom_histogram(binwidth = bwidth1) +
+       labs(x ="Number of Peptides", y = "Number of Proteins") +
+       scale_fill_brewer("Precursor Charge", palette = "YlOrRd")+
        theme_classic() +
        theme(plot.title = element_text(size = 14, face = "bold"),
              axis.title = element_text(size = 11, face = "bold"),
              axis.text.x = element_text(face = "bold", size = 12),
              axis.text.y = element_text(face= "bold", size = 12)) 
      
-     p2 <- ggplot(data = y, aes(x = x)) +
-       geom_histogram(aes(fill = ..count..), binwidth = 5) +
-       labs(x ="Number of peptides per protein") +
-       scale_y_continuous(name = "Frequency") +
-       scale_fill_gradient("", low = "blue", high = "red")+
+     p2 <- ggplot(data = x2, aes(x = x, fill = frg_type)) +
+       geom_histogram(binwidth = bwidth2) +
+       labs(x ="Number of Ions", y = "Number of Peptides") +
+       scale_fill_brewer("Fragment type", palette = "PuRd") +
        theme_classic() +
        theme(plot.title = element_text(size = 14, face = "bold"),
              axis.title = element_text(size = 11, face = "bold"),
              axis.text.x = element_text(face = "bold", size = 12),
              axis.text.y = element_text(face= "bold", size = 12)) 
-     p <- ggarrange(p1, p2, ncol = 2)
+     
+     p <- annotate_figure(ggarrange(p1, p2, ncol = 2), "Frequency distribution of Peptides per Protein and Ions per Peptide", fig.lab.face = "bold")
      print(p)
      
      filepath <- getwd()
      filepath2 <- paste0(filepath,"/graphs")
      ggsave("External_library_plot.png", width = 8, height = 5, path = filepath2)
-     
-    # Relative_Intensity <- lib2data$relative_intensity
-    # Retention_Time <- lib2data$RT_detected
-    # mass_to_charge <- lib2data$frg_z
-    # Fragment_Type <- factor(lib2data$frg_type)
-    # libplot <- ggplot(data = lib2data, aes(x = Retention_Time, 
-    #                                    y = Relative_Intensity, 
-    #                                    #z = mass_to_charge
-    #                                    col = Fragment_Type)) + 
-    #          geom_line()
-    # 
-    # libplot + theme(panel.background = element_rect(fill = 'white', colour = 'red'))
-   } else return()
+   }
   })
+  
  
 #/////////////////////////////////////////////////////////////////////////////////
  
@@ -700,7 +854,10 @@ shinyServer(function(input, output, session) {
  
  content= function(file)
  {
-   data = lib1clean()
+   if(value() == 1)
+     data = seedcleanlibdata()
+   else
+     data = seedlibdata()
    
    if(input$inputseedlibformat == "PeakView"){
      write.csv(x = peakviewFormat(data), file = file, row.names = F, na = " ")
@@ -726,7 +883,10 @@ shinyServer(function(input, output, session) {
     
     content= function(file)
     {
-      data = lib2clean()
+      if(value() == 1)
+        data = extcleanlibdata()
+      else
+        data = extlibdata()
       
       if(input$inputextlibformat == "PeakView"){
         write.csv(x = peakviewFormat(data), file = file, row.names = F, na = " ")
@@ -781,13 +941,13 @@ shinyServer(function(input, output, session) {
 #### Available Libraries
   
   output$libseedfilesrt <- renderUI({
-    if (is.null(lib1clean())) return()
+    if (is.null(seedlibdata())) return()
     else
     paste(input$seedlib$name)
   })
   
   output$libextfilesrt <- renderUI({
-    if (is.null(lib2clean())) return()
+    if (is.null(extlibdata())) return()
     else
       paste(input$extlib$name)
   })
@@ -797,13 +957,13 @@ shinyServer(function(input, output, session) {
 #### Available Libraries
   
   output$libseedfilesint <- renderUI({
-    if (is.null(lib1clean())) return()
+    if (is.null(seedlibdata())) return()
     else
     paste(input$seedlib$name)
   })
   
   output$libextfilesint <- renderUI({
-    if (is.null(lib2clean())) return()
+    if (is.null(extlibdata())) return()
     else
       paste(input$extlib$name)
   })
@@ -832,37 +992,74 @@ shinyServer(function(input, output, session) {
   
 #### Seed Library Summary
   
-  output$seedlibsummary <- renderText({
-    seeddata <- lib1clean()
-    summarydata <- libSummary(seeddata)
-    
-   paste0("Seed assay library contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
-         "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
-         " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
-         " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
-   
+ 
+  observeEvent(input$cleanupdate, {
+    output$seedlibsummary <- renderText({
+        seeddata <- seedcleanlibdata()
+        if(!is.null(seeddata)) {
+      summarydata <- libSummary(seeddata)
+      
+      paste0("Seed assay library contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+             "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+             " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+             " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+        }
+    })
   })
+  
+  observeEvent(input$apply, {
+    output$seedlibsummary <- renderText({
+      seeddata <- seedlibdata()
+      if(!is.null(seeddata)) {
+        summarydata <- libSummary(seeddata)
+        
+        paste0("Seed assay library contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+  })
+  
+   
   
 #//////////////////////////////////////////////////////////////////////////////////
 
 #### External Library Summary
   
-  output$extlibsummary <- renderText({
-    extdata <- lib2clean()
-    summarydata <- libSummary(extdata)
-    paste0("External assay library contains \n", " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","), 
-           "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
-           " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","), "\n",
-           " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
-    
+  observeEvent(input$cleanupdate, {
+    output$extlibsummary <- renderText({
+        extdata <- extcleanlibdata()
+        if(!is.null(extdata)){
+      summarydata <- libSummary(extdata)
+      paste0("External assay library contains \n", " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","), 
+             "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
+             " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","), "\n",
+             " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+        }
+    })
   })
+  
+  observeEvent(input$apply, {
+    output$extlibsummary <- renderText({
+      extdata <- extlibdata()
+      if(!is.null(extdata)){
+        summarydata <- libSummary(extdata)
+        paste0("External assay library contains \n", " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","), 
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","), "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+  })
+  
   
 #////////////////////////////////////////////////////////////////////////////////// 
   
 #### Combined Library Summary
   
   output$comblibsummary <- renderText({
-    if(!is.null(lib1clean()) && !is.null(lib2clean())){
+    if(!is.null(seedlibdata()) && !is.null(extlibdata())){
       data = combdatalib()
       }
     summarydata <- libSummary(data[[1]])
@@ -880,8 +1077,15 @@ shinyServer(function(input, output, session) {
   ### by time tables/ graphs
   
   rtcordt <- eventReactive(input$calRT, {
-    dat1 <- lib1clean()
-    dat2 <- lib2clean()
+    # dat1 <- lib1clean()
+    # dat2 <- lib2clean()
+    
+    if(value() == 1)
+      {dat1 = seedcleanlibdata()
+      dat2 = extcleanlibdata()}
+    else
+     {dat1 = seedlibdata()
+      dat2 = extlibdata()}
 
     if(!is.null(dat1) && !is.null(dat2)){                                   
       withProgress(message = "Retention time correlation", style = "notification", value = 0.1, {
@@ -912,8 +1116,15 @@ shinyServer(function(input, output, session) {
   ###  by hydro tables/ graphs
   
   hydrocordt <- eventReactive(input$calRT,{
-    dat1 <- lib1clean()
-    dat2 <- lib2clean()
+    # dat1 <- lib1clean()
+    # dat2 <- lib2clean()
+    
+    if(value() == 1)
+    {dat1 = seedcleanlibdata()
+    dat2 = extcleanlibdata()}
+    else
+    {dat1 = seedlibdata()
+    dat2 = extlibdata()}
     
     if(!is.null(dat1) && !is.null(dat2) && !is.null(hydrofile())){                                   
       withProgress(message = "Retention time correlation", style = "notification", value = 0.1, {
@@ -945,8 +1156,15 @@ shinyServer(function(input, output, session) {
   
   hydrofile <- reactive({
   
-    dat1 <- lib1clean()
-    dat2 <- lib2clean()
+    # dat1 <- lib1clean()
+    # dat2 <- lib2clean()
+    
+    if(value() == 1)
+    {dat1 = seedcleanlibdata()
+    dat2 = extcleanlibdata()}
+    else
+    {dat1 = seedlibdata()
+    dat2 = extlibdata()}
     
     inFile <- input$hydrofile
     
@@ -978,8 +1196,15 @@ shinyServer(function(input, output, session) {
   
 
    output$dvrtcor <- renderPlot({
-     dat1 <- lib1clean()
-     dat2 <- lib2clean()
+     # dat1 <- lib1clean()
+     # dat2 <- lib2clean()
+     
+     if(value() == 1)
+     {dat1 = seedcleanlibdata()
+     dat2 = extcleanlibdata()}
+     else
+     {dat1 = seedlibdata()
+     dat2 = extlibdata()}
      
      if(!is.null(dat1) && !is.null(dat2))
      rr <- rtcordt()
@@ -1001,7 +1226,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$calRT,{
     output$hydrocorplot <- renderPlot({
     
-    
     rr <- hydrocordt()
     if (!is.null(rr)){
       
@@ -1010,7 +1234,6 @@ shinyServer(function(input, output, session) {
   })
   })
   
- 
     output$dvhydrocor <- renderPlot({
 
         rr <- hydrocordt()
@@ -1019,9 +1242,6 @@ shinyServer(function(input, output, session) {
         print(rr[[2]])
       } else return()
     })
-  
-  
-  
   
   
   #/////////////////////////////////////////////////////////////////////////////////
@@ -1042,8 +1262,15 @@ shinyServer(function(input, output, session) {
   
     output$dvrtresd <- renderPlot({
       
-      dat1 <- lib1clean()
-      dat2 <- lib2clean()
+      # dat1 <- lib1clean()
+      # dat2 <- lib2clean()
+      
+      if(value() == 1)
+      {dat1 = seedcleanlibdata()
+      dat2 = extcleanlibdata()}
+      else
+      {dat1 = seedlibdata()
+      dat2 = extlibdata()}
       
       if(!is.null(dat1) && !is.null(dat2))
         rr <- rtcordt()
@@ -1073,7 +1300,6 @@ shinyServer(function(input, output, session) {
   })
   })
   
-  
     output$dvhydroresd <- renderPlot({
       
         rr <- hydrocordt()
@@ -1082,9 +1308,6 @@ shinyServer(function(input, output, session) {
         print(rr[[3]])
       } else return()
     })
-  
-  
-  
   
   #/////////////////////////////////////////////////////////////////////////////////  
   
@@ -1158,8 +1381,15 @@ shinyServer(function(input, output, session) {
   
   computeRIbyintensity <- reactive({
     
-    dat1 <- lib1clean()
-    dat2 <- lib2clean() 
+    # dat1 <- lib1clean()
+    # dat2 <- lib2clean() 
+    
+    if(value() == 1)
+    {dat1 = seedcleanlibdata()
+    dat2 = extcleanlibdata()}
+    else
+    {dat1 = seedlibdata()
+    dat2 = extlibdata()}
     
     if(!is.null(dat1) && !is.null(dat2)){
       withProgress(message = "Relative intensity correlation", style = "notification", value = 0.1, {
@@ -1191,10 +1421,8 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$calRI,{
     output$intensitycorplot <- renderPlot({
- 
-    
-   
-          ricor <- computeRIbyintensity()
+
+             ricor <- computeRIbyintensity()
           
         ionCorGS<-NULL; rm(ionCorGS);
         data(ionCorGS)
@@ -1239,8 +1467,15 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$calRI,{
     output$intensitycordata <- DT::renderDataTable({
-    dat1 <- lib1clean()
-    dat2 <- lib2clean()
+    # dat1 <- lib1clean()
+    # dat2 <- lib2clean()
+      
+      if(value() == 1)
+      {dat1 = seedcleanlibdata()
+      dat2 = extcleanlibdata()}
+      else
+      {dat1 = seedlibdata()
+      dat2 = extlibdata()}
     
     if(!is.null(dat1) && !is.null(dat2)){
       ricor <- computeRIbyintensity()
@@ -1262,8 +1497,21 @@ shinyServer(function(input, output, session) {
 #### Building Combined Library reactive
   
   combdatalib <- eventReactive(input$combrun, { 
-    dat1 <- lib1clean()
-    dat2 <- lib2clean()
+    
+    if(input$uselibs == "clean") {
+      dat1 <- lib1clean()
+      dat2 <- lib2clean()
+    } else {
+
+      dat1 <- lib1read()
+      dat2 <- lib2read() }
+    
+    # if(value() == 1)
+    # {dat1 = seedcleanlibdata()
+    # dat2 = extcleanlibdata()}
+    # else
+    # {dat1 = seedlibdata()
+    # dat2 = extlibdata()}
     
     if(!is.null(dat1) && !is.null(dat2)){
     
@@ -1300,7 +1548,7 @@ shinyServer(function(input, output, session) {
   })
     
     output$combineLib <- DT::renderDataTable({
-      if(!is.null(lib1clean()) && !is.null(lib2clean())){
+      if(!is.null(seedlibdata()) && !is.null(extlibdata())){
         data = combdatalib()
       DT::datatable(data = data[[1]], 
                     options = list(pageLength = 50,
@@ -1389,7 +1637,7 @@ shinyServer(function(input, output, session) {
         filepath <- getwd()
         filepath2 <- paste0(filepath,"/graphs/peptideVennDigram.png")
         list(src = filepath2, width = "100%", height = "100%")
-      })
+      }, deleteFile = F)
     })
 
     observeEvent(input$combrun, {
@@ -1399,7 +1647,7 @@ shinyServer(function(input, output, session) {
         filepath <- getwd()
         filepath2 <- paste0(filepath,"/graphs/peptideVennDigram.png")
         list(src = filepath2, width = "100%", height = "100%")
-      })
+      }, deleteFile = F)
     })
 
     observeEvent(input$autowizrun, {
@@ -1409,7 +1657,7 @@ shinyServer(function(input, output, session) {
         filepath <- getwd()
         filepath2 <- paste0(filepath,"/graphs/proteinVennDigram.png")
         list(src = filepath2, width = "100%", height = "100%")
-      })
+      } , deleteFile = F)
     })
 
     observeEvent(input$combrun, {
@@ -1419,7 +1667,7 @@ shinyServer(function(input, output, session) {
         filepath <- getwd()
         filepath2 <- paste0(filepath,"/graphs/proteinVennDigram.png")
         list(src = filepath2, width = "100%", height = "100%")
-      })
+      } , deleteFile = F)
     })
 
     observeEvent(input$autowizrun, {
@@ -1431,7 +1679,7 @@ shinyServer(function(input, output, session) {
         filepath <- getwd()
         filepath2 <- paste0(filepath,"/graphs/plots_of_library_info.png")
         list(src = filepath2, width = "100%", height = "100%")
-      })
+      } , deleteFile = F)
     })
 
     observeEvent(input$combrun, {
@@ -1443,7 +1691,7 @@ shinyServer(function(input, output, session) {
         filepath <- getwd()
         filepath2 <- paste0(filepath,"/graphs/plots_of_library_info.png")
         list(src = filepath2, width = "100%", height = "100%")
-      })
+      } , deleteFile = F)
     })
  
   
