@@ -35,11 +35,11 @@
 
 
 source("isMissCleavaged.R")
-library(dplyr)
-library(stringr)
+library("dplyr")
+library("stringr")
 cleanLib <- function(datLib, clean=TRUE, intensity.cutoff=5,conf.cutoff=0.99,
                     nomod = FALSE, nomc = TRUE, enz=c("trypsin", "gluc", "chymotrypsin"), 
-                    prec.charge = 3, prod.charge = 3
+                    prec.charge = 4, prod.charge = 4
                     , frag.number = 3
                     )
 {
