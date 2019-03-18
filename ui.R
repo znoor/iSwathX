@@ -628,7 +628,7 @@ shinyUI(fluidPage(
                                                                         animate = F,
                                                                         width = '100%'),
                                                             sliderInput(inputId = "fragmentnumber",
-                                                                        label = "Fragment Series Number (e.g. y3, b7)",
+                                                                        label = "Min. Fragment Series Number (e.g. y3, b7)",
                                                                         min = 1,
                                                                         max = 10,
                                                                         value = 3,
