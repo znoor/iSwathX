@@ -77,11 +77,11 @@ plotStats <- function(datBaseLib, datExtLib, wb=NULL, sheet=NULL, ...)
     #grid.newpage()
 
 
-    if(nums.pro[1]>0 && nums.pro[2]>0)
+    if(nums.pro[1]>0 && nums.pro[2]>0){
 
-      filepath <- getwd()
-  filepath2 <- paste0(filepath,"/graphs/proteinVennDigram.png")
-  # png(filepath2)
+  #     filepath <- getwd()
+  # filepath2 <- paste0(filepath,"/graphs/proteinVennDigram.png")
+  # # png(filepath2)
       # png("proteinVennDigram.png")
 
   prot_base <- datBaseLib[!duplicated(datBaseLib$uniprot_id), "uniprot_id"]
@@ -90,7 +90,7 @@ plotStats <- function(datBaseLib, datExtLib, wb=NULL, sheet=NULL, ...)
   prot_ext <- datExtLib[!duplicated(datExtLib$uniprot_id), "uniprot_id"]
   pep_ext <- datExtLib[!duplicated(datExtLib$stripped_sequence), "stripped_sequence"]
   
- venn.diagram(list(prot_base, prot_ext),
+ pprotvenn <- venn.diagram(list(prot_base, prot_ext),
                category.names = c("Base Library Proteins", "External Library Proteins"),
                resolution = 500,
                cat.default.pos = "outer",
@@ -101,9 +101,15 @@ plotStats <- function(datBaseLib, datExtLib, wb=NULL, sheet=NULL, ...)
                cat.fontface = 2,
                lty =2, 
                # fontfamily ="sans",
-               filename = filepath2
+               # filename = filepath2
+               filename = NULL
                )
-
+ pprot <- gTree(children=pprotvenn)
+ 
+ pprotgg <- as_ggplot(pprot)
+ filepath <- getwd()
+ filepath2 <- paste0(filepath,"/graphs")
+ ggsave("ProteinVennDiagram.png", width = 6, height = 5, path = filepath2)
       # draw.pairwise.venn(nums.pro[1], nums.pro[2],
       #                    length(proteinOverlap(datBaseLib,datExtLib, ...)),
       #                    category = c("Base Library Proteins", "External Library Proteins"),
@@ -124,12 +130,12 @@ plotStats <- function(datBaseLib, datExtLib, wb=NULL, sheet=NULL, ...)
     if(nums.pep[1]>0 && nums.pep[2]>0){
 
       
-      filepath <- getwd()
-      filepath2 <- paste0(filepath,"/graphs/peptideVennDigram.png")
-      # png(filepath2)
+      # filepath <- getwd()
+      # filepath2 <- paste0(filepath,"/graphs/peptideVennDigram.png")
+      # # png(filepath2)
       # png("peptideVennDigram.png")
       
-      venn.diagram(list(pep_base, pep_ext),
+      ppepvenn <- venn.diagram(list(pep_base, pep_ext),
                    category.names = c("Base Library Peptides", "External Library Peptides"),
                    resolution = 500,
                    cat.default.pos = "outer",
@@ -140,9 +146,19 @@ plotStats <- function(datBaseLib, datExtLib, wb=NULL, sheet=NULL, ...)
                    cat.fontface = 2,
                    lty =2, 
                    # fontfamily ="sans",
-                   filename = filepath2
+                   # filename = filepath2
+                   filename = NULL
       )
-      
+      ppep <- gTree(children=ppepvenn)
+    }
+  
+  
+  
+  ppepgg <- as_ggplot(ppep)
+  filepath <- getwd()
+  filepath2 <- paste0(filepath,"/graphs")
+  ggsave("PeptideVennDiagram.png", width = 6, height = 5, path = filepath2)
+  
       # draw.pairwise.venn(nums.pep[1], nums.pep[2],
       #                    length(unique(intersect(datBaseLib$stripped_sequence,
       #                                            datExtLib$stripped_sequence))),
@@ -390,6 +406,8 @@ plotStats <- function(datBaseLib, datExtLib, wb=NULL, sheet=NULL, ...)
   list.plots[["ppnum"]] = ppnum
   list.plots[["pdens"]] = pdens
   list.plots[["phist"]] = phist
+  list.plots[["pvennprot"]] = pprotgg
+  list.plots[["pvennpep"]] = ppepgg
   
   return(list.plots)
 }
