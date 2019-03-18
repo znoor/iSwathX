@@ -25,12 +25,16 @@ source("computeIntensityCor.R")
 source("buildSpectraLibPair.R")
 source("reliabilityCheckLibrary.R")
 source("libSummary.R")
+source("readReportFile.R")
+source("processReport.R")
+source("reportSummary.R")
 #source("reliabilityCheckSwath.R")
 
 
 shinyServer(function(input, output, session) {
   
   value <- reactiveVal(0)
+  value1 <- reactiveVal(0)
 
   
   shinyjs::disable("apply")
@@ -38,6 +42,9 @@ shinyServer(function(input, output, session) {
   shinyjs::disable("inclength")
   shinyjs::disable("downloadseedinputLibs")
   shinyjs::disable("downloadextinputLibs")
+  shinyjs::disable("report")
+  shinyjs::disable("processFile")
+  shinyjs::disable("downloadreport")
   # shinyjs::disable("wizdownloadoutputLib")
   # shinyjs::disable("autowizrun")
 #### Apply button which is activating the tabs
@@ -47,6 +54,10 @@ shinyServer(function(input, output, session) {
       shinyjs::show(id = "libreadpanel")
       showTab(inputId = "libraries", target = "Seed Library", select = TRUE)
     })
+  
+  observeEvent(input$report,{
+    shinyjs::show(id = "reportreadpanel")
+  })
   
   
   ##### auto wizard start over button try
@@ -120,8 +131,8 @@ shinyServer(function(input, output, session) {
                   
                   ricor <- autoricor()
                   
-                  # ionCorGS<-NULL; rm(ionCorGS);
-                  # data(ionCorGS)
+                  ionCorGS<-NULL; rm(ionCorGS);
+                  data(ionCorGS)
                   # 
                   if(!is.null(ricor)){ 
                     print(ricor[[3]])}
@@ -258,6 +269,19 @@ shinyServer(function(input, output, session) {
       lib2 <- readLibFile(inFile$datapath, input$libformats12, "spectrum", clean = FALSE)
     return(lib2)
   })
+  
+  ### Report File Read
+  
+  reportfiledata <- eventReactive(input$report, {
+    inFile <- input$inputreport
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      
+      report <- readReportFile(inFile$datapath)
+    return(report)
+  })
 
 #//////////////////////////////////////////////////////////////////////////////////
   
@@ -279,6 +303,11 @@ shinyServer(function(input, output, session) {
     #          conf.cutoff = input$confidence, prec.charge = input$precursorcharge, prod.charge = input$productcharge,
     #          nomod = input$modified, frag.number = input$fragmentnumber, nomc = input$misscleavage, enz = input$enzyme)
     return(clib2)
+  })
+  
+  reportprocessdata <- eventReactive(input$processFile, {
+    reportf <- reportprocess()
+    return(reportf)
   })
   
   #//////////////////////////////////////////////////////////////////////////////////
@@ -379,7 +408,23 @@ shinyServer(function(input, output, session) {
   
 #/////////////////////////////////////////////////////////////////////////////////  
   
-#### External Library Claening reactive
+  
+  #### Report Reading Reactive
+  
+  reportread <- reactive({
+    inFile <- input$inputreport
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      
+      report <- readReportFile(inFile$datapath)
+    return(report)
+  })
+  
+  #/////////////////////////////////////////////////////////////////////////////////  
+  
+#### External Library Cleaning reactive
 
   lib2clean <- reactive(
   {
@@ -390,6 +435,24 @@ shinyServer(function(input, output, session) {
   })
 
 #/////////////////////////////////////////////////////////////////////////////////
+  
+  #### Report File processing reactive
+  
+  reportprocess <- reactive(
+    {
+      repp <- reportread()
+      processReport(repp, spiked = input$refineText, avgDotP = input$averagedotp,
+                    avgMass = input$averagemasserr, avgRT = input$averagert, avgQval = input$averageqval)
+    })
+  
+  
+  observeEvent(input$processFile, {
+    newValue1 <- value1() + 1     
+    value1(newValue1)             
+  })
+  
+  
+  #/////////////////////////////////////////////////////////////////////////////////
 
 #### Enable apply button    
   output$readapply <- renderUI({
@@ -404,10 +467,30 @@ shinyServer(function(input, output, session) {
   
 #/////////////////////////////////////////////////////////////////////////////////
   
+  #### Enable report apply button    
+  output$reportapply <- renderUI({
+    
+    inFile<- input$inputreport
+    if(is.null(inFile)) return()
+    
+    # if (is.null(lib1read()) && is.null(lib2read())) return()
+    shinyjs::enable("report")
+  })  
+  
+  #/////////////////////////////////////////////////////////////////////////////////
+  
   #### Enable clean button    
   output$clean.lib <- renderUI({
     if (is.null(seedlibdata()) && is.null(extlibdata())) return()
     shinyjs::enable("cleanupdate")
+  })  
+  
+  #/////////////////////////////////////////////////////////////////////////////////
+  
+  #### Enable report process button    
+  output$process.rep <- renderUI({
+    if (is.null(reportread())) return()
+    shinyjs::enable("processFile")
   })  
   
   #/////////////////////////////////////////////////////////////////////////////////
@@ -421,11 +504,20 @@ shinyServer(function(input, output, session) {
   
   #/////////////////////////////////////////////////////////////////////////////////
   
-  #### Enable downloadseed button    
+  #### Enable downloadext button    
   output$downloadext <- renderUI({
     if (is.null(seedlibdata()) && is.null(seedlibdata())) return()
     else if(!is.null(extlibdata()))
       shinyjs::enable("downloadextinputLibs")
+  })  
+  
+  #/////////////////////////////////////////////////////////////////////////////////
+  
+  #### Enable download report button    
+  output$downloadrep <- renderUI({
+    if (is.null(reportread())) return()
+    else if(!is.null(reportread()))
+      shinyjs::enable("downloadreport")
   })  
   
   #/////////////////////////////////////////////////////////////////////////////////
@@ -460,7 +552,7 @@ shinyServer(function(input, output, session) {
     output$seedlibcontents <- DT::renderDataTable({
       withProgress(message = "Generating seed library table", style = "notification", value = 0.1, {
         for(i in 1:1) {
-          data = seedlibdata()
+          data = lib1read()
           incProgress(0.1, detail = "reading library")
           Sys.sleep(0.25)
         }
@@ -480,10 +572,9 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$cleanupdate,{
     output$seedlibcontents <- DT::renderDataTable({
-    if (!is.null(seedcleanlibdata())){
       withProgress(message = "Generating seed library table", style = "notification", value = 0.1, {
         for(i in 1:1) {
-          data = seedcleanlibdata()
+          data = lib1clean()
           incProgress(0.1, detail = "reading library")
           Sys.sleep(0.25)
         }
@@ -497,10 +588,56 @@ shinyServer(function(input, output, session) {
                                    scroller.loadingIndicator = T),
                     caption = input$seedlib$name
       )
-    }
+
   })
   })
 
+  ############# Report Data Table
+    
+    observeEvent(input$report, {
+      output$reportContents <- DT::renderDataTable({
+        withProgress(message = "Generating report file table", style = "notification", value = 0.1, {
+          for(i in 1:1) {
+            data <- reportread()
+            incProgress(0.1, detail = "reading report file")
+            Sys.sleep(0.25)
+          }
+        })
+        DT::datatable(data = data,
+                      options = list(pageLength = 10,
+                                     scrollX = T,
+                                     scrollY = "500px",
+                                     scrollCollapse = T,
+                                     autoWidth = T,
+                                     scroller.loadingIndicator = T),
+                      caption = input$inputreport$name
+        )
+        
+      })
+    }) 
+    
+    
+    observeEvent(input$processFile, {
+      output$reportContents <- DT::renderDataTable({
+        withProgress(message = "Generating report file table", style = "notification", value = 0.1, {
+          for(i in 1:1) {
+            data <- reportprocess()
+            incProgress(0.1, detail = "reading report file")
+            Sys.sleep(0.25)
+          }
+        })
+        DT::datatable(data = data,
+                      options = list(pageLength = 10,
+                                     scrollX = T,
+                                     scrollY = "500px",
+                                     scrollCollapse = T,
+                                     autoWidth = T,
+                                     scroller.loadingIndicator = T),
+                      caption = input$inputreport$name
+        )
+        
+      })
+    }) 
   
 #/////////////////////////////////////////////////////////////////////////////////  
   
@@ -907,6 +1044,24 @@ shinyServer(function(input, output, session) {
     }
     )
   
+  
+  ### download report file
+  
+  output$downloadreport <- downloadHandler(filename = function()
+  {paste("Report",input$inputreport$name , Sys.Date(), ".csv", sep = "_")},
+  
+  content= function(file)
+  {
+    if(value1() == 1)
+      data = reportprocess()
+    else
+      data = reportread()
+    
+      write.csv(x = data, file = file, row.names = F, na = " ")
+    
+  }
+  )
+  
 #/////////////////////////////////////////////////////////////////////////////////
   
   
@@ -936,7 +1091,39 @@ shinyServer(function(input, output, session) {
     )
   
 #/////////////////////////////////////////////////////////////////////////////////
+
   
+  #### Available Report File and Reps
+  
+  output$reportfilename <- renderUI({
+    if (is.null(reportfiledata())) return()
+    else
+      paste(input$inputreport$name)
+  })
+  
+  output$reps <- renderUI({
+    if (is.null(reportfiledata())) return()
+    else
+     { 
+       dat <- reportread()
+     reps <- length(colnames(dat[, str_which(colnames(dat), 
+                                                  pattern = "Library.Dot.Product")]))
+     if(is.null(reps)) {
+       reps <- length(colnames(dat[, str_which(colnames(dat),
+                                               pattern = "Peptide.Retention.Time")]))
+       
+       if(is.null(reps))
+         reps <- length(colnames(dat[, str_which(colnames(dat), 
+                                                 pattern = "Average.Mass.Error.PPM")]))
+       if(is.null(reps))
+         reps <- "null_paste"
+     }
+     
+       paste(reps)
+     }
+  })
+  
+  #//////////////////////////////////////////////////////////////////////////////////    
   
 #### Available Libraries
   
@@ -1021,9 +1208,42 @@ shinyServer(function(input, output, session) {
     })
   })
   
-   
   
 #//////////////////////////////////////////////////////////////////////////////////
+  
+  
+  #### Report File Summary
+  
+  observeEvent(input$report, {
+    output$reportSummary <- renderText({
+      
+      data = reportread()
+      
+      if(!is.null(data)) {
+        repsummarydata <- reportSummary(data)
+        paste0("Report File contains \n", " Proteins = ", formatC(repsummarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(repsummarydata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
+               " Modified Peptides = ", formatC(repsummarydata[["modpeptides"]], format = "d", big.mark = ","))
+      }
+    })
+  }) 
+  
+  
+   observeEvent(input$processFile, {
+    output$reportSummary <- renderText({
+      
+        data = reportprocess()
+      
+      if(!is.null(data)) {
+        repsummarydata <- reportSummary(data)
+        paste0("Report File contains \n", " Proteins = ", formatC(repsummarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(repsummarydata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
+               " Modified Peptides = ", formatC(repsummarydata[["modpeptides"]], format = "d", big.mark = ","))
+      }
+    })
+  }) 
+  
+  #////////////////////////////////////////////////////////////////////////////////// 
 
 #### External Library Summary
   
@@ -1200,11 +1420,11 @@ shinyServer(function(input, output, session) {
      # dat2 <- lib2clean()
      
      if(value() == 1)
-     {dat1 = seedcleanlibdata()
-     dat2 = extcleanlibdata()}
+     {dat1 = lib1clean()
+     dat2 = lib2clean()}
      else
-     {dat1 = seedlibdata()
-     dat2 = extlibdata()}
+     {dat1 = lib1read()
+     dat2 = lib2read()}
      
      if(!is.null(dat1) && !is.null(dat2))
      rr <- rtcordt()
@@ -1266,11 +1486,11 @@ shinyServer(function(input, output, session) {
       # dat2 <- lib2clean()
       
       if(value() == 1)
-      {dat1 = seedcleanlibdata()
-      dat2 = extcleanlibdata()}
+      {dat1 = lib1clean()
+      dat2 = lib2clean()}
       else
-      {dat1 = seedlibdata()
-      dat2 = extlibdata()}
+      {dat1 = lib1read()
+      dat2 = lib2read()}
       
       if(!is.null(dat1) && !is.null(dat2))
         rr <- rtcordt()
@@ -1696,6 +1916,176 @@ shinyServer(function(input, output, session) {
  
   
 # ///////////////////////////////////////////////////////////////////////////////////
+    
+    # #### Report DotP Graphs
+    # 
+    # output$dotpPlot <- renderPlot({
+    #   if(!is.null(reportread()))
+    #     withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+    #       for (i in 1:1) {
+    #         dat <- reportread()
+    #         dat <- dat[!duplicated(dat$Modified.Sequence),]
+    #         cols <- dat[, str_which(colnames(dat), pattern = "Library.Dot.Product")]
+    #         # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+    #         cols_names <- c("Peptide", colnames(cols))
+    #         # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+    #         dat <- dat[, cols_names]
+    #         dat <- gather(dat, Replicates, Dot.Product, -Peptide)
+    #         dat$Dot.Product <- as.numeric(dat$Dot.Product) 
+    #         ## some plot
+    #         
+    #         dp <- ggplot(data = dat, aes(y = Dot.Product, x = "", fill = Replicates)) +
+    #           geom_boxplot(alpha = 1,
+    #                        notch = TRUE, notchwidth = 0.8,
+    #                        outlier.colour = "red", outlier.fill = "red", outlier.size = 1) +
+    #           scale_fill_manual(values=c("#d4d0d0", "#bebbbb", "#a9a6a6", "#949191",  "#7f7c7c")) +
+    #           theme(axis.title.x = element_text(color="black", size=12, face="bold"),
+    #                 axis.title.y = element_text(color="black", size=12, face="bold"), 
+    #                 panel.background = element_rect(fill = "white",
+    #                                                 colour = "white",
+    #                                                 size = 0.5, linetype = "solid"),
+    #                 panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+    #                 axis.text = element_text(color="black",size = 11),
+    #                 legend.text = element_text(size = 13),
+    #                 legend.title = element_text(face = "bold"),
+    #                 legend.justification = "center") +
+    #           xlab("Cattle") +
+    #           ylab("Dot P values")
+    #         
+    #         print(dp)
+    #         
+    #         incProgress(0.1, detail = "plotting")
+    #         Sys.sleep(0.25)
+    #       }
+    #     })
+    # })
+    # 
+    # 
+    # 
+    # ###### Mass Error Plots
+    # 
+    # output$massEPlot <- renderPlot({
+    #   if(!is.null(reportread()))
+    #     withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+    #       for (i in 1:1) {
+    #         dat <- reportread()
+    #         dat <- dat[!duplicated(dat$Modified.Sequence),]
+    #         cols <- dat[, str_which(colnames(dat), pattern = "Mass.Error.PPM")]
+    #         # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+    #         cols_names <- c("Peptide", colnames(cols))
+    #         # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+    #         dat <- dat[, cols_names]
+    #         dat <- gather(dat, Replicates, Mass.Error, -Peptide)
+    #         dat$Mass.Error <- as.numeric(dat$Mass.Error) 
+    #         ## some plot
+    #         
+    #         dp <- ggplot(data = dat, aes(x = Mass.Error, fill = Replicates)) +
+    #           geom_histogram(binwidth = 0.4, color = "red", 
+    #                          # fill = "#ff4945", 
+    #                          alpha = 0.7) +
+    #           labs(x = "Mass Error (PPM)", y = "Count") +
+    #           scale_fill_manual(values=c("#d4d0d0", "#bebbbb", "#a9a6a6", "#949191",  "#7f7c7c")) +
+    #           theme(axis.title.x = element_text(color="black", size=12, face="bold"),
+    #                 axis.title.y = element_text(color="black", size=12, face="bold"), 
+    #                 panel.background = element_rect(fill = "white",
+    #                                                 colour = "white",
+    #                                                 size = 0.5, linetype = "solid"),
+    #                 panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+    #                 axis.text = element_text(color="black",size = 11),
+    #                 legend.text = element_text(size = 13),
+    #                 legend.title = element_text(face = "bold"),
+    #                 legend.justification = "center") +
+    #           xlab("Cattle") +
+    #           ylab("Dot P values")
+    #         
+    #         print(dp)
+    #         
+    #         incProgress(0.1, detail = "plotting")
+    #         Sys.sleep(0.25)
+    #       }
+    #     })
+    # })
+    # 
+    # ##### CV Plots
+    # 
+    # output$cvPlot <- renderPlot({
+    #   if(!is.null(reportread()))
+    #     withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+    #       for (i in 1:1) {
+    #         dat <- reportread()
+    #         dat <- dat[!duplicated(dat$Modified.Sequence),]
+    #         dat <- mutate(dat, "CV.Normalized" = as.character(dat$Cv.Total.Area.Normalized))
+    #         dat$CV.Normalized <- str_replace(dat$CV.Normalized, pattern = "%", replacement = "")
+    #         dat$CV.Normalized <- round(as.numeric(dat$CV.Normalized))
+    #         ## some plot
+    #         
+    #         dp <- ggplot(data = dat, aes(y = CV.Normalized, x = "")) +
+    #           geom_violin(alpha = 0.9, color = "black",
+    #                       trim = F)+
+    #           scale_fill_manual(values = c("#ff4945")) +
+    #           geom_boxplot(width = 0.1, fill = "white") +
+    #           theme(legend.position = "none") +
+    #           labs(x = "", y = "Normalized CVs") +
+    #           theme(axis.title.x = element_text(color="black", size=12, face="bold"),
+    #                 axis.title.y = element_text(color="black", size=12, face="bold"), 
+    #                 panel.background = element_rect(fill = "white",
+    #                                                 colour = "white",
+    #                                                 size = 0.5, linetype = "solid"),
+    #                 panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+    #                 axis.text = element_text(color="black",size = 11)
+    #           )
+    #         
+    #         print(dp)
+    #         
+    #         incProgress(0.1, detail = "plotting")
+    #         Sys.sleep(0.25)
+    #       }
+    #     })
+    # })
+    # 
+    # 
+    # ###### Q-Value Plots
+    # 
+    # output$qvalPlot <- renderPlot({
+    #   if(!is.null(reportread()))
+    #     withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+    #       for (i in 1:1) {
+    #         dat <- reportread()
+    #         dat <- dat[!duplicated(dat$Modified.Sequence),]
+    #         cols <- dat[, str_which(colnames(dat), pattern = "annotation_QValue")]
+    #         # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+    #         cols_names <- c("Peptide", colnames(cols))
+    #         # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+    #         dat <- dat[, cols_names]
+    #         dat <- gather(dat, Replicates, Q-Value, -Peptide)
+    #         dat$Q-Value <- as.numeric(dat$Q-Value) 
+    #         ## some plot
+    #         
+    #         dp <- ggplot(data = dat, aes(x = Q-Value, fill = Replicates)) +
+    #           geom_density(adjust = 1.5, alpha=.5) +
+    #           scale_fill_manual(values=c("#d4d0d0", "#bebbbb", "#a9a6a6", "#949191",  "#7f7c7c")) +
+    #           theme(axis.title.x = element_text(color="black", size=12, face="bold"),
+    #                 axis.title.y = element_text(color="black", size=12, face="bold"), 
+    #                 panel.background = element_rect(fill = "white",
+    #                                                 colour = "white",
+    #                                                 size = 0.5, linetype = "solid"),
+    #                 panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+    #                 axis.text = element_text(color="black",size = 11),
+    #                 legend.text = element_text(size = 13),
+    #                 legend.title = element_text(face = "bold"),
+    #                 legend.justification = "center") +
+    #           xlab("Cattle") +
+    #           ylab("Dot P values")
+    #         
+    #         print(dp)
+    #         
+    #         incProgress(0.1, detail = "plotting")
+    #         Sys.sleep(0.25)
+    #       }
+    #     })
+    # })
+    # 
+    # # ///////////////////////////////////////////////////////////////////////////////////    
     
     
 #### Graphs Download
