@@ -62,7 +62,7 @@ buildSpectraLibPair<-function(baseLib,extLib, hydroIndex,
                            outputFormat = c("peakview", "openswath", "skyline", "spectronaut"),
                            outputFile = "extendedLibrary.txt", 
                            plot = FALSE, 
-                           clean = TRUE, 
+                           clean = FALSE, 
                            merge = TRUE,
                            parseAcc = FALSE,
                            consolidateAccession=FALSE, ...)
