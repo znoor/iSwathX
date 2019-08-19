@@ -29,9 +29,9 @@ source("computeIntensityCor.R")
 source("buildSpectraLibPair.R")
 source("reliabilityCheckLibrary.R")
 source("libSummary.R")
-source("readReportFile.R")
-source("processReport.R")
-source("reportSummary.R")
+# source("readReportFile.R")
+# source("processReport.R")
+# source("reportSummary.R")
 #source("reliabilityCheckSwath.R")
 
 
