@@ -9,6 +9,10 @@
 options(shiny.maxRequestSize=10000*1024^2)
 library(shiny)
 library(shinyBS)
+library(RColorBrewer)
+library(grid)
+library(gridExtra)
+library(pheatmap)
 
 #source("outputLib.R")
 #source("openSwathFormat.R")
@@ -25,6 +29,9 @@ source("computeIntensityCor.R")
 source("buildSpectraLibPair.R")
 source("reliabilityCheckLibrary.R")
 source("libSummary.R")
+source("readReportFile.R")
+source("processReport.R")
+source("reportSummary.R")
 #source("reliabilityCheckSwath.R")
 
 
@@ -56,6 +63,10 @@ shinyServer(function(input, output, session) {
     shinyjs::show(id = "reportreadpanel")
   })
   
+  
+  observeEvent(input$multireport,{
+    shinyjs::show(id = "multireportpanel")
+  })
   
   ##### auto wizard start over button try
   
@@ -102,19 +113,19 @@ shinyServer(function(input, output, session) {
                    # if(is.numeric(lib1sumdata[["proteins"]])) {
                    paste0("Seed assay library contains \n", " Proteins = ", formatC(lib1sumdata[["proteins"]], format = "d", big.mark = ","),
                           "\n", " Unmodified Peptides = ", formatC(lib1sumdata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
-                          " Modified Peptides = ", formatC(lib1sumdata[["modpeptides"]], format = "d", big.mark = ","), "\n",
+                          " All Peptides = ", formatC(lib1sumdata[["modpeptides"]], format = "d", big.mark = ","), "\n",
                           " Transitions = ",formatC(lib1sumdata[["transitions"]], format = "d", big.mark = ",") ,  "\n", "\n",
                           
                           "External assay library contains \n",  " Proteins = ", formatC(lib2sumdata[["proteins"]], format = "d", big.mark = ","),
                           "\n", " Unmodified Peptides = ", formatC(lib2sumdata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
-                          " Modified Peptides = ", formatC(lib2sumdata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+                          " All Peptides = ", formatC(lib2sumdata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
                           " Transitions = ", formatC(lib2sumdata[["transitions"]], format = "d", big.mark = ",") , "\n", "\n",
                           
                           "Retention time correlation between seed and external library = ", format(rtcorrelation[[4]], digits = 2) , "\n","\n",
                           
                           "Combined assay library contains \n", " Proteins = ", formatC(comblibdata2[["proteins"]], format = "d", big.mark = ","),
                           "\n", " Unmodified Peptides = ", formatC(comblibdata2[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
-                          " Modified Peptides = ", formatC(comblibdata2[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+                          " All Peptides = ", formatC(comblibdata2[["modpeptides"]], format = "d", big.mark = ","),  "\n",
                           " Transitions = " , formatC(comblibdata2[["transitions"]], format = "d", big.mark = ","))
                    # }
                    # else paste(lib1sumdata[["proteins"]])
@@ -165,28 +176,28 @@ shinyServer(function(input, output, session) {
   
   ####  Output / autowiz Combined Libraries Download 
   output$wizdownloadoutputLib <- downloadHandler(filename = function () {
-    paste("Combined", input$autoseedlib$name,input$autoextlib$name , Sys.Date(), ".csv", sep = "_")
+    paste("Combined", input$autoseedlib$name,input$autoextlib$name , Sys.Date(), ".txt", sep = "_")
   },
   content = function (file) {
     
     data = autocombLib()
     data = data[[1]]
     
-    # write.csv(x = peakviewFormat(data), file = paste0(filename, "peakview" , ".csv"), sep = ",")
+    # write.table(x = peakviewFormat(data), file = paste0(filename, "peakview" , ".csv"), sep = ",")
     
     # filename <-  paste("Combined", input$autoseedlib$name,input$autoextlib$name , sep = "_")
     
     if(input$autooutputlibformat == "PeakView"){
-      write.csv(x = peakviewFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = peakviewFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     } else if(input$autooutputlibformat == "OpenSwath")
     {
-      write.csv(x = OswathFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = OswathFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     } else if(input$autooutputlibformat == "Skyline")
     {
-      write.csv(x = skylineFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = skylineFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     } else # spectronaut
     {
-      write.csv(x = spectronautFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = spectronautFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     }
     
   }
@@ -271,6 +282,45 @@ shinyServer(function(input, output, session) {
   
   reportfiledata <- eventReactive(input$report, {
     inFile <- input$inputreport
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      
+      report <- readReportFile(inFile$datapath)
+    return(report)
+  })
+  
+  ### Multi Report File Read 1
+  
+  reportfiledata1 <- eventReactive(input$report, {
+    inFile <- input$inputreport1
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      
+      report <- readReportFile(inFile$datapath)
+    return(report)
+  })
+  
+  ### Multi Report File Read 2
+  
+  reportfiledata2 <- eventReactive(input$report, {
+    inFile <- input$inputreport2
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      
+      report <- readReportFile(inFile$datapath)
+    return(report)
+  })
+  
+  ### Multi Report File Read 3
+  
+  reportfiledata3 <- eventReactive(input$report, {
+    inFile <- input$inputreport3
     
     if(is.null(inFile)) {
       return(NULL)
@@ -419,6 +469,45 @@ shinyServer(function(input, output, session) {
     return(report)
   })
   
+  
+  #### Multi Report Reading Reactive 1
+  
+  reportread1 <- reactive({
+    inFile <- input$inputreport1
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      
+      report <- readReportFile(inFile$datapath)
+    return(report)
+  })
+  
+  #### Multi Report Reading Reactive 2
+  
+  reportread2 <- reactive({
+    inFile <- input$inputreport2
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      
+      report <- readReportFile(inFile$datapath)
+    return(report)
+  })
+  
+  #### Multi Report Reading Reactive 3
+  
+  reportread3 <- reactive({
+    inFile <- input$inputreport3
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      
+      report <- readReportFile(inFile$datapath)
+    return(report)
+  })
   #/////////////////////////////////////////////////////////////////////////////////  
   
   #### External Library Cleaning reactive
@@ -473,6 +562,16 @@ shinyServer(function(input, output, session) {
     # if (is.null(lib1read()) && is.null(lib2read())) return()
     shinyjs::enable("report")
   })  
+  
+  #### Enable multireport apply button    
+  output$multireportapply <- renderUI({
+    
+    inFile<- input$inputreport
+    if(is.null(inFile)) return()
+    
+    # if (is.null(lib1read()) && is.null(lib2read())) return()
+    shinyjs::enable("report")
+  }) 
   
   #/////////////////////////////////////////////////////////////////////////////////
   
@@ -984,7 +1083,7 @@ shinyServer(function(input, output, session) {
   
   ####  Input Libraries Download 
   output$downloadseedinputLibs <- downloadHandler(filename = function()
-  {paste("Library_seed",input$seedlib$name , Sys.Date(), ".csv", sep = "_")},
+  {paste("Library_seed",input$seedlib$name , Sys.Date(), ".txt", sep = "_")},
   
   content= function(file)
   {
@@ -994,26 +1093,26 @@ shinyServer(function(input, output, session) {
       data = seedlibdata()
     
     if(input$inputseedlibformat == "PeakView"){
-      write.csv(x = peakviewFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = peakviewFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
       
     } else if(input$inputseedlibformat == "OpenSwath")
     {
-      write.csv(x = OswathFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = OswathFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
       
     } else if(input$inputseedlibformat == "Skyline")
     {
-      write.csv(x = skylineFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = skylineFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
       
     } else # spectronaut
     {
-      write.csv(x = spectronautFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = spectronautFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     }
     
   }
   )
   
   output$downloadextinputLibs <- downloadHandler(filename = function()
-  {paste("Library_ext",input$extlib$name , Sys.Date(), ".csv", sep = "_")},
+  {paste("Library_ext",input$extlib$name , Sys.Date(), ".txt", sep = "_")},
   
   content= function(file)
   {
@@ -1023,19 +1122,19 @@ shinyServer(function(input, output, session) {
       data = extlibdata()
     
     if(input$inputextlibformat == "PeakView"){
-      write.csv(x = peakviewFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = peakviewFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
       
     } else if(input$inputextlibformat == "OpenSwath")
     {
-      write.csv(x = OswathFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = OswathFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
       
     } else if(input$inputextlibformat == "Skyline")
     {
-      write.csv(x = skylineFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = skylineFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
       
     } else # spectronaut
     {
-      write.csv(x = spectronautFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = spectronautFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     }
     
   }
@@ -1064,7 +1163,7 @@ shinyServer(function(input, output, session) {
   
   ####  Output / Combined Libraries Download 
   output$downloadoutputLib <- downloadHandler(filename = function () 
-  {paste("Combined", input$seedlib$name,input$extlib$name , Sys.Date(), ".csv", sep = "_")
+  {paste("Combined", input$seedlib$name,input$extlib$name , Sys.Date(), ".txt", sep = "_")
   },
   content = function (file) {
     
@@ -1072,16 +1171,16 @@ shinyServer(function(input, output, session) {
     data = data[[1]]
     
     if(input$outputlibformat == "PeakView"){
-      write.csv(x = peakviewFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = peakviewFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     } else if(input$outputlibformat == "OpenSwath")
     {
-      write.csv(x = OswathFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = OswathFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     } else if(input$outputlibformat == "Skyline")
     {
-      write.csv(x = skylineFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = skylineFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     } else # spectronaut
     {
-      write.csv(x = spectronautFormat(data), file = file, row.names = F, na = " ")
+      write.table(x = spectronautFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
     }
     
   }
@@ -1917,7 +2016,1134 @@ shinyServer(function(input, output, session) {
   
   
   # ///////////////////////////////////////////////////////////////////////////////////
+  
+  #### Report DotP Graphs
+  
+  output$dotpPlot <- renderPlot({
+    if(!is.null(reportread()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat <- reportread()
+          dat <- dat[!duplicated(dat$Modified.Sequence),]
+          cols <- dat[, str_which(colnames(dat), pattern = "Library.Dot.Product")]
+          # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+          cols_names <- c("Peptide", colnames(cols))
+          # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+          dat <- dat[, cols_names]
+          dat <- gather(dat, Replicates, Dot.Product, -Peptide)
+          dat$Dot.Product <- as.numeric(dat$Dot.Product) 
+          ## some plot
+          getPalette = colorRampPalette(brewer.pal(9, "Dark2"))
+          
+          dp <- ggplot(data = dat, aes(y = Dot.Product, x = "", fill = Replicates)) +
+            geom_boxplot(alpha = 1,
+                         notch = TRUE, notchwidth = 0.8,
+                         outlier.colour = "red", outlier.fill = "red", outlier.size = 1) +
+            # scale_fill_manual(values=c("#d4d0d0", "#bebbbb", "#a9a6a6", "#949191",  "#7f7c7c")) +
+            # scale_fill_brewer(palette="Dark2") +
+            scale_fill_manual(values = getPalette(length(unique(dat$Replicates)))) +
+            theme(axis.title.x = element_text(color="black", size=16, face="bold"),
+                  axis.title.y = element_text(color="black", size=16, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+                  axis.text = element_text(color="black",size = 14),
+                  legend.text = element_text(size = 13),
+                  legend.title = element_text(face = "bold"),
+                  legend.justification = "center") +
+            xlab(paste(input$inputreport$name)) +
+            ylab("Dot Product")
+          
+          print(dp)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  #### Report Intensity Distribution Graph
+  
+  output$intensityPlot <- renderPlot({
+    if(!is.null(reportread()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat <- reportread()
+          dat <- dat[!duplicated(dat$Modified.Sequence),]
+          cols <- dat[, str_which(colnames(dat), pattern = "Normalized.Area")]
+          # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+          cols_names <- c("Peptide", colnames(cols))
+          # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+          dat <- dat[, cols_names]
+          dat <- gather(dat, Replicates, Area, -Peptide)
+          dat$Area <- log(as.numeric(format(dat$Area, digits = 7)), base = 2)
+          ## some plot
+          getPalette = colorRampPalette(brewer.pal(9, "Dark2"))
+          
+          dp <- ggplot(data = dat, aes(y = Area, x = "", fill = Replicates)) +
+            geom_boxplot(alpha = 1,
+                         notch = TRUE, notchwidth = 0.8,
+                         outlier.colour = "red", outlier.fill = "red", outlier.size = 1) +
+            # scale_fill_manual(values=c("#d4d0d0", "#bebbbb", "#a9a6a6", "#949191",  "#7f7c7c")) +
+            # scale_fill_brewer(palette="Dark2") +
+            scale_fill_manual(values = getPalette(length(unique(dat$Replicates)))) +
+            facet_wrap(~Replicates, drop = FALSE, scales = "free_y") +
+            theme(axis.title.x = element_text(color="black", size=16, face="bold"),
+                  axis.title.y = element_text(color="black", size=16, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+                  axis.text = element_text(color="black",size = 14),
+                  legend.text = element_text(size = 13),
+                  legend.title = element_text(face = "bold"),
+                  legend.justification = "center",
+                  legend.position = "None") +
+            xlab(paste(input$inputreport$name)) +
+            ylab("Log Intensity")
+          
+          print(dp)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  ###### Mass Error Plots
+  
+  output$massEPlot <- renderPlot({
+    if(!is.null(reportread()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat <- reportread()
+          dat <- dat[!duplicated(dat$Modified.Sequence),]
+          cols <- dat[, str_which(colnames(dat), pattern = "Mass.Error.PPM")]
+          # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+          cols_names <- c("Peptide", colnames(cols))
+          # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+          dat <- dat[, cols_names]
+          dat <- gather(dat, Replicates, Mass.Error, -Peptide)
+          dat$Mass.Error <- as.numeric(dat$Mass.Error) 
+          ## some plot
+          getPalette = colorRampPalette(brewer.pal(9, "Dark2"))
+          
+          dp <- ggplot(data = dat, aes(x = Mass.Error, fill = Replicates)) +
+            geom_histogram(binwidth = 0.4, color = "black",
+                           # fill = "#ff4945", 
+                           alpha = 0.9) +
+            labs(x = "Mass Error (PPM)", y = "Count") +
+            # scale_fill_manual(values=c("#d4d0d0", "#bebbbb", "#a9a6a6", "#949191",  "#7f7c7c")) +
+            # scale_fill_brewer(palette="Dark2") +
+            scale_fill_manual(values = getPalette(length(unique(dat$Replicates)))) +
+            facet_wrap(~Replicates, drop = FALSE, scales = "free_y") +
+            theme(axis.title.x = element_text(color="black", size=16, face="bold"),
+                  axis.title.y = element_text(color="black", size=16, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+                  axis.text = element_text(color="black",size = 14),
+                  legend.text = element_text(size = 13),
+                  legend.title = element_text(face = "bold"),
+                  legend.justification = "center", 
+                  legend.position = "None") +
+            xlab("Mass Error (PPM)") +
+            ylab("Count")
+          
+          print(dp)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  ##### CV Plots
+  
+  output$cvPlot <- renderPlot({
+    if(!is.null(reportread()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat <- reportread()
+          dat <- dat[!duplicated(dat$Modified.Sequence),]
+          dat <- mutate(dat, "CV.Normalized" = as.character(dat$Cv.Total.Area.Normalized))
+          dat$CV.Normalized <- str_replace(dat$CV.Normalized, pattern = "%", replacement = "")
+          dat$CV.Normalized <- round(as.numeric(dat$CV.Normalized))
+          ## some plot
+          getPalette = colorRampPalette(brewer.pal(9, "Dark2"))
+          
+          dp <- ggplot(data = dat, aes(y = CV.Normalized, x = "")) +
+            geom_violin(alpha = 0.9, color = "black",
+                        trim = F)+
+            # scale_fill_manual(values = c("#ff4945")) +
+            scale_fill_brewer(palette="Dark2") +
+            geom_boxplot(width = 0.1, fill = "white") +
+            theme(legend.position = "none") +
+            labs(x = paste(input$inputreport$name), y = "Normalized CVs (%)") +
+            theme(axis.title.x = element_text(color="black", size=16, face="bold"),
+                  axis.title.y = element_text(color="black", size=16, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+                  axis.text = element_text(color="black",size = 14),
+                  aspect.ratio = 1
+            )
+          
+          print(dp)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  ###### Q-Value Plots
+  
+  output$qvalPlot <- renderPlot({
+    if(!is.null(reportread()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat <- reportread()
+          dat <- dat[!duplicated(dat$Modified.Sequence),]
+          cols <- dat[, str_which(colnames(dat), pattern = "Detection.Q.Value")]
+          # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+          cols_names <- c("Peptide", colnames(cols))
+          # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+          dat <- dat[, cols_names]
+          # dat$Detection.Q.Value <- as.numeric(format(dat$Area, digits = 4))
+          dat <- gather(dat, Replicates, Q_Value, -Peptide)
+          dat$Q_Value <- as.numeric(dat$Q_Value)
+          ## some plot
+          getPalette = colorRampPalette(brewer.pal(9, "Dark2"))
+          
+          dp <- ggplot(data = dat) +
+            geom_density(aes(x = Q_Value, y = ..scaled.., fill = Replicates), alpha=.8, stat = "density", position = "identity", linetype = "solid") +
+            # scale_fill_manual(values=c("#d4d0d0", "#bebbbb", "#a9a6a6", "#949191",  "#7f7c7c")) +
+            # scale_fill_brewer(palette="Dark2") +
+            scale_fill_manual(values = getPalette(length(unique(dat$Replicates)))) +
+            facet_wrap(~Replicates, drop = FALSE, scales = "free_y") +
+            theme(axis.title.x = element_text(color="black", size=12, face="bold"),
+                  axis.title.y = element_text(color="black", size=12, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+                  axis.text = element_text(color="black",size = 11),
+                  legend.text = element_text(size = 13),
+                  legend.title = element_text(face = "bold"),
+                  legend.justification = "center",
+                  legend.position = "None") +
+            # xlab("Cattle") +
+            ylab("Density")
+          
+          print(dp)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  ###### DDA - DIA Retention time Plots
+  
+  
+  report_lib_file <- reactive({
+    
+    inFile <- input$report_lib
+    
+    if(is.null(inFile)) {
+      
+      return(NULL)
+    } else
+      
+      readLibFile(inFile$datapath, input$report_lib_format, "spectrum", clean = FALSE)
+  })
+  
+  observeEvent(input$drtplot, {
+  output$drtPlot <- renderPlot({
+    if(!is.null(reportread()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat <- reportread()
+          dat <- dat[!duplicated(dat$Modified.Sequence),]
+          
+          dat_rt <- dat[, c("Protein.Name", "Peptide", "Modified.Sequence",  "Average.Measured.Retention.Time")]
+          
+          lib_rt <- report_lib_file()
+          lib_rt <- lib_rt[!duplicated(lib_rt$modification_sequence), c("modification_sequence", "RT_detected")]
+          
+          comm_pep <- intersect(dat$Modified.Sequence, lib_rt$modification_sequence)
+          
+          dat_rt <- dat_rt[dat_rt$Modified.Sequence %in% comm_pep,]
+          lib_rt <- lib_rt[lib_rt$modification_sequence %in% comm_pep,]
+          
+          rt_cor_data <- merge(dat_rt, lib_rt, by.x = 3, by.y = 1, all = TRUE)
+          
+          rt_cor_data$Average.Measured.Retention.Time <- as.numeric(rt_cor_data$Average.Measured.Retention.Time)
+          
+          
+          drt <- ggplot(rt_cor_data, aes(x = Average.Measured.Retention.Time, y = RT_detected)) +
+            geom_point(alpha = 0.7, col = "black", fill = "black", size  = 1.5, shape = 15) +
+            annotate("text", x = 20, y = 50,
+                     label = deparse(bquote(italic(R)^2 ==. (format(
+                       round(cor(rt_cor_data$Average.Measured.Retention.Time, rt_cor_data$RT_detected), digits = 2), digits = 2)))),
+                     color = "black", parse = T) +
+            stat_smooth(method = "auto", col = "red", se = T, size = 0.8)+
+            scale_y_continuous("DDA RT (min)", limits = c(min(rt_cor_data$RT_detected), max(rt_cor_data$RT_detected)),
+                               expand = c(0,0)) +
+            scale_x_continuous("DIA RT (min)", limits = c(min(rt_cor_data$Average.Measured.Retention.Time), max(rt_cor_data$Average.Measured.Retention.Time)),
+                               expand = c(0,0)) +
+          theme(legend.position = "none") +
+            # labs(x = paste(input$inputreport$name), y = "Normalized CVs (%)") +
+            theme(axis.title.x = element_text(color="black", size=16, face="bold"),
+                  axis.title.y = element_text(color="black", size=16, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+                  axis.text = element_text(color="black",size = 14),
+                  aspect.ratio = 1
+            )
+          
+          print(drt)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  })
+  
+  
+  # ###### PROTEIN INTENSITIES TABLE AND PLOT
+  # 
+  output$intensity_table <- DT::renderDataTable({
+
+    if(!is.null(reportread()))
+      withProgress(message = "Generating Table", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat <- reportread()
+          dat <- dat[!duplicated(dat$Modified.Sequence),]
+
+          cols <- dat[, str_which(colnames(dat), pattern = "Normalized.Area")]
+          cols <- apply(cols, 2, as.numeric)
+          cols <- as.data.frame(cols)
+
+          # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+          cols_names <- c("Protein.Name","Peptide", "Modified.Sequence")
+          # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+          dat <- dat[, cols_names]
+          dat <- cbind(dat, cols)
+
+          dat_int <- dplyr::group_by(dat, Protein.Name)
+          dat_int2 <- dat_int %>% summarise_at(vars(colnames(cols)), funs(sum))
+
+          dat_int2[is.na(dat_int2)] <- 0
+
+
+          
+
+          incProgress(0.1, detail = "Generating Table")
+          Sys.sleep(0.25)
+        }
+      })
+    
+    DT::datatable(data = dat_int2,
+                  options = list(pageLength = 10,
+                                 scrollX = T,
+                                 scrollY = "500px",
+                                 scrollCollapse = T,
+                                 autoWidth = T,
+                                 scroller.loadingIndicator = T)
+                  # caption = input$seedlib$name
+    )
+
+  })
+  
+  
+  # 
+  output$intensity_plot <- renderPlot({
+
+    if(!is.null(reportread()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat <- reportread()
+          dat <- dat[!duplicated(dat$Modified.Sequence),]
+
+          cols <- dat[, str_which(colnames(dat), pattern = "Normalized.Area")]
+          cols <- apply(cols, 2, as.numeric)
+          cols <- as.data.frame(cols)
+
+          # cols <- cbind(cols, dat[, str_which(colnames(dat), pattern = "Peptide")])
+          cols_names <- c("Protein.Name","Peptide", "Modified.Sequence")
+          # colnames(dat) <- c("Peptides", "Rep01", "Rep02", "Rep03", "Rep04", "Rep05")
+          dat <- dat[, cols_names]
+          dat <- cbind(dat, cols)
+
+          dat_int <- dplyr::group_by(dat, Protein.Name)
+          dat_int2 <- dat_int %>% summarise_at(vars(colnames(cols)), funs(sum))
+
+          dat_int2[is.na(dat_int2)] <- 0
+
+
+          dat_int3 <- dat_int2[, "Protein.Name"]
+          dat_int3 <- cbind(dat_int3, apply(dat_int2[, str_which(colnames(dat_int2), pattern = "Normalized.Area")], 2, log2))
+
+          dat_int3 <- dat_int3 %>%
+            mutate(Proteins = paste0("Prot", 1:length(dat_int3$Protein.Name)))
+
+          dat_int3 <- dat_int3[, -c(1)]
+          colnames(dat_int3) <- c(paste0("Rep", 1: (ncol(dat_int3)-1)), "Proteins")
+
+          dat_int4 <- gather(data = dat_int3, key = Replicates, value = Intensity, -c(ncol(dat_int3)))
+          
+          textcol <- "grey40"
+
+          rep_int <- ggplot(data = dat_int4, mapping = aes(x = Replicates, y = Proteins, fill = Intensity)) +
+            geom_tile(colour="gray",size=0.0005) +
+            labs(x="",y="", title = "Protein intensities comparison among replicates")+
+            scale_y_discrete(expand=c(0,0))+
+            scale_fill_distiller(palette = "Spectral") +
+            theme_grey(base_size=10)+
+            theme(legend.position="right",legend.direction="vertical",
+                  legend.title=element_text(colour=textcol, face = "bold"),
+                  legend.margin=margin(grid::unit(0,"cm")),
+                  legend.text=element_text(colour=textcol,size=7,face="bold"),
+                  legend.key.height=grid::unit(0.8,"cm"),
+                  legend.key.width=grid::unit(0.2,"cm"),
+                  axis.text.x=element_text(size=10,colour=textcol),
+                  axis.text.y=element_text(vjust=0.2,colour=textcol),
+                  axis.ticks=element_line(size=0.4),
+                  plot.background=element_blank(),
+                  panel.border=element_blank(),
+                  # plot.margin=margin(0.7,0.4,0.1,0.2,"cm"),
+                  plot.title=element_text(colour=textcol,hjust=0,size=14,face="bold"),
+                  # aspect.ratio = 0.5
+                  )
+
+          
+          print(rep_int)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+
+  })
+  
+  # ///////////////////////////////////////////////////////////////////////////////////
+  
+  #### Report Statistics Graphs
+  
+  output$report_stats <- renderPlot({
+    if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat1 <- reportread1()
+          dat2 <- reportread2()
+          dat3 <- reportread3()
+          
+          dat1_prot <- dat1[!duplicated(dat1$Protein.Name),"Protein.Name"]
+          dat1_pep <- dat1[!duplicated(dat1$Modified.Sequence),"Modified.Sequence"]
+          
+          dat2_prot <- dat2[!duplicated(dat2$Protein.Name),"Protein.Name"]
+          dat2_pep <- dat2[!duplicated(dat2$Modified.Sequence),"Modified.Sequence"]
+          
+          dat3_prot <- dat3[!duplicated(dat3$Protein.Name),"Protein.Name"]
+          dat3_pep <- dat3[!duplicated(dat3$Modified.Sequence),"Modified.Sequence"]
+          
+          extractions_data <- data.frame("Proteins" = c(length(dat1_prot), length(dat2_prot), length(dat3_prot)),
+                                         "Peptides" = c(length(dat1_pep), length(dat2_pep), length(dat3_pep)),
+                                         "Data" = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name))
+          
+          rep_prot <- ggplot(data=extractions_data, aes(x = Data, y = Proteins, fill = Data)) +
+            geom_bar(stat = "identity", alpha = 0.8, position=position_dodge(), width = 0.9) +
+            geom_text(aes(label=Proteins), vjust=0, color="black", fontface = "bold",
+            position = position_dodge(0.9),
+            size=5) +
+            # scale_y_continuous(breaks=seq(0, 300, 50))+
+            #scale_fill_brewer(palette="Paired") +
+            scale_fill_manual(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name), values=c("#ff4945", "#2ac940", "#75a3e7"))+
+            scale_x_discrete(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name)) +
+            theme(axis.title.x = element_text(color="black", size=13, face="bold"),
+                  axis.title.y = element_text(color="black", size=13, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"),
+                  # panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                  #                                 colour = "white"), 
+                  # panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                  #                                 colour = "gray"),
+                  axis.text.y = element_text(color="black", size = 12, face = "bold"),
+                  axis.text.x = element_text(color="black", size = 12, face = "bold"),
+                  legend.text = element_text(size = 12, face = "bold"),
+                  legend.title = element_text(size = 14, face = "bold"),
+                  legend.justification = "center",
+                  legend.position = "None")
+          
+          rep_pep <- ggplot(data=extractions_data, aes(x = Data, y = Peptides, fill = Data)) +
+            geom_bar(stat = "identity", alpha = 0.8, position=position_dodge(), width = 0.9) +
+            geom_text(aes(label=Peptides), vjust=0, color="black", fontface = "bold",
+            position = position_dodge(0.9),
+            size=5) +
+            # scale_y_continuous(breaks=seq(0, 300, 50))+
+            #scale_fill_brewer(palette="Paired") +
+            scale_fill_manual(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name), values=c("#ff4945", "#2ac940", "#75a3e7"))+
+            scale_x_discrete(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name)) +
+            theme(axis.title.x = element_text(color="black", size=13, face="bold"),
+                  axis.title.y = element_text(color="black", size=13, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"),
+                  # panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                  #                                 colour = "white"), 
+                  # panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                  #                                 colour = "gray"),
+                  axis.text.y = element_text(color="black", size = 12, face = "bold"),
+                  axis.text.x = element_text(color="black", size = 12, face = "bold"),
+                  legend.text = element_text(size = 12, face = "bold"),
+                  legend.title = element_text(size = 14, face = "bold"),
+                  legend.justification = "center",
+                  legend.position = "None")
+          
+          rep_stats <- ggarrange(rep_prot, rep_pep)
+          
+          print(rep_stats)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
   # ///////////////////////////////////////////////////////////////////////////////////    
+  
+  #### Multireport venn diagram Rep 1 - Rep 2
+  # c("#ff4945", "#2ac940", "#75a3e7")
+  output$rep1_rep2 <- renderPlot({
+    if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat1 <- reportread1()
+          dat2 <- reportread2()
+          dat3 <- reportread3()
+          
+          dat1_prot <- dat1[!duplicated(dat1$Protein.Name),"Protein.Name"]
+          dat1_pep <- dat1[!duplicated(dat1$Modified.Sequence),"Modified.Sequence"]
+          
+          dat2_prot <- dat2[!duplicated(dat2$Protein.Name),"Protein.Name"]
+          dat2_pep <- dat2[!duplicated(dat2$Modified.Sequence),"Modified.Sequence"]
+          
+          dat3_prot <- dat3[!duplicated(dat3$Protein.Name),"Protein.Name"]
+          dat3_pep <- dat3[!duplicated(dat3$Modified.Sequence),"Modified.Sequence"]
+          
+          d1_d2_pep <- venn.diagram(list(dat1_pep, dat2_pep),
+                                  category.names = c(input$inputreport1$name , input$inputreport2$name),
+                                  resolution = 500,
+                                  # height = 1000,
+                                  # width = 1000,
+                                  cat.default.pos = "outer",
+                                  lwd = 2,
+                                  fill = c("#ff4945", "#2ac940"),
+                                  cat.pos = c(-170, 170),
+                                  alpha = c(0.7, 0.7), 
+                                  cex = 1.5,
+                                  cat.fontface = 2,
+                                  lty =2, 
+                                  cat.fontfamily = "Arial",
+                                  fontfamily = "Arial",
+                                  # fontfamily ="sans",
+                                  # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Peptides.tiff"
+                                  filename = NULL)
+          d1_d2_pro <- venn.diagram(list(dat1_prot, dat2_prot),
+                                  category.names = c(input$inputreport1$name , input$inputreport2$name),
+                                  resolution = 500,
+                                  # height = 1000,
+                                  # width = 1000,
+                                  cat.default.pos = "outer",
+                                  lwd = 2,
+                                  fill = c("#ff4945", "#2ac940"),
+                                  cat.pos = c(-170, 170),
+                                  alpha = c(0.7, 0.7), 
+                                  cex = 1.5,
+                                  cat.fontface = 2,
+                                  lty =2, 
+                                  cat.fontfamily = "Arial",
+                                  fontfamily = "Arial",
+                                  # fontfamily ="sans",
+                                  # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Proteins.tiff"
+                                  filename = NULL)
+          
+          vennpro12 <- gTree(children = d1_d2_pro)
+          vennpro12 <- as_ggplot(vennpro12)
+          
+          vennpep12 <- gTree(children = d1_d2_pep)
+          vennpep12 <- as_ggplot(vennpep12)
+          
+          venn12 <- ggarrange(vennpro12, vennpep12, ncol = 2, nrow = 1, labels = c("A. Proteins", "B. Peptides"), font.label = list(size = 15), hjust = -0.1)
+          print(venn12)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  # /////////////////////////////////////////////////////////////////////////////////// 
+  
+  #### Multireport venn diagram Rep 2 - Rep 3
+  # c("#ff4945", "#2ac940", "#75a3e7")
+  output$rep2_rep3 <- renderPlot({
+    if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat1 <- reportread1()
+          dat2 <- reportread2()
+          dat3 <- reportread3()
+          
+          dat1_prot <- dat1[!duplicated(dat1$Protein.Name),"Protein.Name"]
+          dat1_pep <- dat1[!duplicated(dat1$Modified.Sequence),"Modified.Sequence"]
+          
+          dat2_prot <- dat2[!duplicated(dat2$Protein.Name),"Protein.Name"]
+          dat2_pep <- dat2[!duplicated(dat2$Modified.Sequence),"Modified.Sequence"]
+          
+          dat3_prot <- dat3[!duplicated(dat3$Protein.Name),"Protein.Name"]
+          dat3_pep <- dat3[!duplicated(dat3$Modified.Sequence),"Modified.Sequence"]
+          
+          d2_d3_pep <- venn.diagram(list(dat2_pep, dat3_pep),
+                                    category.names = c(input$inputreport2$name , input$inputreport3$name),
+                                    resolution = 500,
+                                    # height = 1000,
+                                    # width = 1000,
+                                    cat.default.pos = "outer",
+                                    lwd = 2,
+                                    fill = c("#2ac940", "#75a3e7"),
+                                    cat.pos = c(-170, 170),
+                                    alpha = c(0.7, 0.7), 
+                                    cex = 1.5,
+                                    cat.fontface = 2,
+                                    lty =2, 
+                                    cat.fontfamily = "Arial",
+                                    fontfamily = "Arial",
+                                    # fontfamily ="sans",
+                                    # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Peptides.tiff"
+                                    filename = NULL)
+          d2_d3_pro <- venn.diagram(list(dat2_prot, dat3_prot),
+                                    category.names = c(input$inputreport2$name , input$inputreport3$name),
+                                    resolution = 500,
+                                    # height = 1000,
+                                    # width = 1000,
+                                    cat.default.pos = "outer",
+                                    lwd = 2,
+                                    fill = c("#2ac940", "#75a3e7"),
+                                    cat.pos = c(-170, 170),
+                                    alpha = c(0.7, 0.7), 
+                                    cex = 1.5,
+                                    cat.fontface = 2,
+                                    lty =2, 
+                                    cat.fontfamily = "Arial",
+                                    fontfamily = "Arial",
+                                    # fontfamily ="sans",
+                                    # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Proteins.tiff"
+                                    filename = NULL)
+          
+          vennpro23 <- gTree(children = d2_d3_pro)
+          vennpro23 <- as_ggplot(vennpro23)
+          
+          vennpep23 <- gTree(children = d2_d3_pep)
+          vennpep23 <- as_ggplot(vennpep23)
+          
+          venn23 <- ggarrange(vennpro23, vennpep23, ncol = 2, nrow = 1, labels = c("A. Proteins", "B. Peptides"), font.label = list(size = 15), hjust = -0.1)
+          print(venn23)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  # /////////////////////////////////////////////////////////////////////////////////// 
+  
+  #### Multireport venn diagram Rep 1 - Rep 3
+  # c("#ff4945", "#2ac940", "#75a3e7")
+  output$rep1_rep3 <- renderPlot({
+    if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat1 <- reportread1()
+          dat2 <- reportread2()
+          dat3 <- reportread3()
+          
+          dat1_prot <- dat1[!duplicated(dat1$Protein.Name),"Protein.Name"]
+          dat1_pep <- dat1[!duplicated(dat1$Modified.Sequence),"Modified.Sequence"]
+          
+          dat2_prot <- dat2[!duplicated(dat2$Protein.Name),"Protein.Name"]
+          dat2_pep <- dat2[!duplicated(dat2$Modified.Sequence),"Modified.Sequence"]
+          
+          dat3_prot <- dat3[!duplicated(dat3$Protein.Name),"Protein.Name"]
+          dat3_pep <- dat3[!duplicated(dat3$Modified.Sequence),"Modified.Sequence"]
+          
+          d1_d3_pep <- venn.diagram(list(dat1_pep, dat3_pep),
+                                    category.names = c(input$inputreport1$name , input$inputreport3$name),
+                                    resolution = 500,
+                                    # height = 1000,
+                                    # width = 1000,
+                                    cat.default.pos = "outer",
+                                    lwd = 2,
+                                    fill = c("#ff4945", "#75a3e7"),
+                                    cat.pos = c(-170, 170),
+                                    alpha = c(0.7, 0.7), 
+                                    cex = 1.5,
+                                    cat.fontface = 2,
+                                    lty =2, 
+                                    cat.fontfamily = "Arial",
+                                    fontfamily = "Arial",
+                                    # fontfamily ="sans",
+                                    # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Peptides.tiff"
+                                    filename = NULL)
+          d1_d3_pro <- venn.diagram(list(dat1_prot, dat3_prot),
+                                    category.names = c(input$inputreport1$name , input$inputreport3$name),
+                                    resolution = 500,
+                                    # height = 1000,
+                                    # width = 1000,
+                                    cat.default.pos = "outer",
+                                    lwd = 2,
+                                    fill = c("#ff4945", "#75a3e7"),
+                                    cat.pos = c(-170, 170),
+                                    alpha = c(0.7, 0.7), 
+                                    cex = 1.5,
+                                    cat.fontface = 2,
+                                    lty =2, 
+                                    cat.fontfamily = "Arial",
+                                    fontfamily = "Arial",
+                                    # fontfamily ="sans",
+                                    # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Proteins.tiff"
+                                    filename = NULL)
+          
+          vennpro13 <- gTree(children = d1_d3_pro)
+          vennpro13 <- as_ggplot(vennpro13)
+          
+          vennpep13 <- gTree(children = d1_d3_pep)
+          vennpep13 <- as_ggplot(vennpep13)
+          
+          venn13 <- ggarrange(vennpro13, vennpep13, ncol = 2, nrow = 1, labels = c("A. Proteins", "B. Peptides"), font.label = list(size = 15), hjust = -0.1)
+          print(venn13)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  # ///////////////////////////////////////////////////////////////////////////////////
+  
+  #### Multireport venn diagram Rep 1 - Rep 2 - Rep 3
+  # c("#ff4945", "#2ac940", "#75a3e7")
+  output$rep1_rep2_rep3 <- renderPlot({
+    if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat1 <- reportread1()
+          dat2 <- reportread2()
+          dat3 <- reportread3()
+          
+          dat1_prot <- dat1[!duplicated(dat1$Protein.Name),"Protein.Name"]
+          dat1_pep <- dat1[!duplicated(dat1$Modified.Sequence),"Modified.Sequence"]
+          
+          dat2_prot <- dat2[!duplicated(dat2$Protein.Name),"Protein.Name"]
+          dat2_pep <- dat2[!duplicated(dat2$Modified.Sequence),"Modified.Sequence"]
+          
+          dat3_prot <- dat3[!duplicated(dat3$Protein.Name),"Protein.Name"]
+          dat3_pep <- dat3[!duplicated(dat3$Modified.Sequence),"Modified.Sequence"]
+          
+          d123_pep <- venn.diagram(
+            x = list(dat1_pep, dat2_pep, dat3_pep),
+            category.names = c(input$inputreport1$name , input$inputreport2$name , input$inputreport3$name),
+            # height = 2000,
+            # width = 2000,
+            resolution = 500,
+            lwd = 2,
+            lty = 2,
+            fill = c("#ff4945", "#2ac940", "#75a3e7"),
+            cat.cex = 1,
+            cex = 1.5,
+            cat.fontfamily = "Arial",
+            fontfamily = "Arial",
+            cat.fontface = 2,
+            cat.default.pos = "outer",
+            cat.pos = c(-36, 30, 135),
+            cat.dist = c(0.055, 0.055, 0.085),
+            rotation = 1,
+            alpha = rep(0.7, 3),
+            # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/PBL_Peptides.tiff"
+            filename = NULL
+          )
+          
+          d123_pro <- venn.diagram(
+            x = list(dat1_prot, dat2_prot, dat3_prot),
+            category.names = c(input$inputreport1$name , input$inputreport2$name , input$inputreport3$name),
+            resolution = 500,
+            # height = 1000,
+            # width = 1000,
+            lwd = 2,
+            lty = 2,
+            fill = c("#ff4945", "#2ac940", "#75a3e7"),
+            cat.cex = 1,
+            cex = 1.5,
+            cat.fontfamily = "Arial",
+            fontfamily = "Arial",
+            cat.fontface = 2,
+            cat.default.pos = "outer",
+            cat.pos = c(-36, 30, 135),
+            cat.dist = c(0.055, 0.055, 0.085),
+            rotation = 1,
+            alpha = rep(0.7, 3),
+            # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/allC_Proteins.tiff"
+            filename = NULL
+          )
+          
+          vennpro123 <- gTree(children = d123_pro)
+          vennpro123 <- as_ggplot(vennpro123)
+          
+          vennpep123 <- gTree(children = d123_pep)
+          vennpep123 <- as_ggplot(vennpep123)
+          
+          venn123 <- ggarrange(vennpro123, vennpep123, ncol = 2, nrow = 1, labels = c("A. Proteins", "B. Peptides"), font.label = list(size = 15), hjust = -0.1)
+          print(venn123)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  # ///////////////////////////////////////////////////////////////////////////////////
+  
+  #### Retention Time Correlation
+
+  output$multirtCorPlot <- renderPlot({
+    if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat1 <- reportread1()
+          dat2 <- reportread2()
+          dat3 <- reportread3()
+          
+          
+          dat1 <- dat1[!duplicated(dat1$Modified.Sequence),]
+          dat1$Average.Measured.Retention.Time <- as.numeric(dat1$Average.Measured.Retention.Time)
+          
+          dat2 <- dat2[!duplicated(dat2$Modified.Sequence),]
+          dat2$Average.Measured.Retention.Time <- as.numeric(dat2$Average.Measured.Retention.Time)
+          
+          dat3 <- dat3[!duplicated(dat3$Modified.Sequence),]
+          dat3$Average.Measured.Retention.Time <- as.numeric(dat3$Average.Measured.Retention.Time)
+          
+          dat1_dat2_peptides <- intersect(dat1$Peptide, dat2$Peptide)
+          
+          dat1_dat3_peptides <- intersect(dat1$Peptide, dat3$Peptide)
+          
+          dat2_dat3_peptides <- intersect(dat2$Peptide, dat3$Peptide)
+          
+          
+          d1_d2_rt <- dat1[dat1$Peptide %in% dat1_dat2_peptides, c("Peptide", "Average.Measured.Retention.Time")]
+          d2_d1_rt <- dat2[dat2$Peptide %in% dat1_dat2_peptides, c("Peptide", "Average.Measured.Retention.Time")]
+          
+          d1_d3_rt <- dat1[dat1$Peptide %in% dat1_dat3_peptides, c("Peptide", "Average.Measured.Retention.Time")]
+          d3_d1_rt <- dat3[dat3$Peptide %in% dat1_dat3_peptides, c("Peptide", "Average.Measured.Retention.Time")]
+          
+          d2_d3_rt <- dat2[dat2$Peptide %in% dat2_dat3_peptides, c("Peptide", "Average.Measured.Retention.Time")]
+          d3_d2_rt <- dat3[dat3$Peptide %in% dat2_dat3_peptides, c("Peptide", "Average.Measured.Retention.Time")]
+          
+          
+          dat1_dat2 <- merge(d1_d2_rt, d2_d1_rt, by = 1)
+          dat1_dat3 <- merge(d1_d3_rt, d3_d1_rt, by = 1)
+          dat2_dat3 <- merge(d2_d3_rt, d3_d2_rt, by = 1)
+          
+          p1 <- ggplot(dat1_dat2, aes(x = Average.Measured.Retention.Time.x, y = Average.Measured.Retention.Time.y)) +
+            geom_point(alpha = 0.7, col = "black", fill = "black", size  = 1.5, shape = 15) +
+            annotate("text", x = 25, y = 45, 
+                     label = deparse(bquote(italic(R)^2 ==. (format(
+                       cor(as.numeric(dat1_dat2$Average.Measured.Retention.Time.x), as.numeric(dat1_dat2$Average.Measured.Retention.Time.y)), digits = 3)))),
+                     color = "black", parse = T) +
+            stat_smooth(method = "auto", col = "red", se = T, size = 0.8)+
+            scale_y_continuous(input$inputreport1$name, limits = c(min(dat1_dat2$Average.Measured.Retention.Time.y), max(dat1_dat2$Average.Measured.Retention.Time.y)),
+                               expand = c(0,0)) +
+            scale_x_continuous(input$inputreport2$name, limits = c(min(dat1_dat2$Average.Measured.Retention.Time.x), max(dat1_dat2$Average.Measured.Retention.Time.x)),
+                               expand = c(0,0)) +
+            theme(panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"),
+                  axis.text = element_text(color="black", size = 12, face = "bold"),
+                  axis.title.x = element_text(color="black", size=12, face="bold"),
+                  axis.title.y = element_text(color="black", size=12, face="bold"),
+                  aspect.ratio = 1
+            )
+          
+          p2 <- ggplot(dat1_dat3, aes(x = Average.Measured.Retention.Time.x, y = Average.Measured.Retention.Time.y)) +
+            geom_point(alpha = 0.7, col = "black", fill = "black", size  = 1.5, shape = 15) +
+            annotate("text", x = 25, y = 45, 
+                     label = deparse(bquote(italic(R)^2 ==. (format(
+                       cor(as.numeric(dat1_dat3$Average.Measured.Retention.Time.x), as.numeric(dat1_dat3$Average.Measured.Retention.Time.y)), digits = 3)))),
+                     color = "black", parse = T) +
+            stat_smooth(method = "auto", col = "red", se = T, size = 0.8)+
+            scale_y_continuous(input$inputreport1$name, limits = c(min(dat1_dat3$Average.Measured.Retention.Time.y), max(dat1_dat3$Average.Measured.Retention.Time.y)),
+                               expand = c(0,0)) +
+            scale_x_continuous(input$inputreport3$name, limits = c(min(dat1_dat3$Average.Measured.Retention.Time.x), max(dat1_dat3$Average.Measured.Retention.Time.x)),
+                               expand = c(0,0)) +
+            theme(panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"),
+                  axis.text = element_text(color="black", size = 12, face = "bold"),
+                  axis.title.x = element_text(color="black", size=12, face="bold"),
+                  axis.title.y = element_text(color="black", size=12, face="bold"),
+                  aspect.ratio = 1
+            )
+          
+          p3 <- ggplot(dat2_dat3, aes(x = Average.Measured.Retention.Time.x, y = Average.Measured.Retention.Time.y)) +
+            geom_point(alpha = 0.7, col = "black", fill = "black", size  = 1.5, shape = 15) +
+            annotate("text", x = 25, y = 45, 
+                     label = deparse(bquote(italic(R)^2 ==. (format(
+                       cor(as.numeric(dat2_dat3$Average.Measured.Retention.Time.x), as.numeric(dat2_dat3$Average.Measured.Retention.Time.y)), digits = 3)))),
+                     color = "black", parse = T) +
+            stat_smooth(method = "auto", col = "red", se = T, size = 0.8)+
+            scale_y_continuous(input$inputreport2$name, limits = c(min(dat2_dat3$Average.Measured.Retention.Time.y), max(dat2_dat3$Average.Measured.Retention.Time.y)),
+                               expand = c(0,0)) +
+            scale_x_continuous(input$inputreport3$name, limits = c(min(dat2_dat3$Average.Measured.Retention.Time.x), max(dat2_dat3$Average.Measured.Retention.Time.x)),
+                               expand = c(0,0)) +
+            theme(panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"),
+                  axis.text = element_text(color="black", size = 12, face = "bold"),
+                  axis.title.x = element_text(color="black", size=12, face="bold"),
+                  axis.title.y = element_text(color="black", size=12, face="bold"),
+                  aspect.ratio = 1
+            )
+          
+          pnum <- ggarrange(p1, p2, p3, ncol = 3)
+          pnum
+          
+          print(pnum)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
+  # ///////////////////////////////////////////////////////////////////////////////////
+  
+  #### Transition Ratio Correlation
+  
+  # output$multitransCor <- renderPlot({
+  #   if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+  #     withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+  #       for (i in 1:1) {
+  #         dat1 <- reportread1()
+  #         dat2 <- reportread2()
+  #         dat3 <- reportread3()
+  #         
+  #         
+  #         dat1 <- dat1[!duplicated(dat1$Modified.Sequence),]
+  #         dat2 <- dat2[!duplicated(dat2$Modified.Sequence),]
+  #         dat3 <- dat3[!duplicated(dat3$Modified.Sequence),]
+  #         
+  #         
+  #         dat1[, str_which(colnames(dat1), pattern = "Area")] <- apply(m <- (dat1[, str_which(colnames(dat1), pattern = "Area")]), 2, as.numeric)
+  #         dat1[, str_which(colnames(dat1), pattern = "Peak.Rank")] <- apply(m <- (dat1[, str_which(colnames(dat1), pattern = "Peak.Rank")]), 2, as.numeric)
+  #         dat1 <- na.omit(dat1)
+  #         
+  #         dat2[, str_which(colnames(dat2), pattern = "Area")] <- apply(m <- (dat2[, str_which(colnames(dat2), pattern = "Area")]), 2, as.numeric)
+  #         dat2[, str_which(colnames(dat2), pattern = "Peak.Rank")] <- apply(m <- (dat2[, str_which(colnames(dat2), pattern = "Peak.Rank")]), 2, as.numeric)
+  #         dat2 <- na.omit(dat2)
+  #         
+  #         dat3[, str_which(colnames(dat3), pattern = "Area")] <- apply(m <- (dat3[, str_which(colnames(dat3), pattern = "Area")]), 2, as.numeric)
+  #         dat3[, str_which(colnames(dat3), pattern = "Peak.Rank")] <- apply(m <- (dat3[, str_which(colnames(dat3), pattern = "Peak.Rank")]), 2, as.numeric)
+  #         dat3 <- na.omit(dat3)
+  #         
+  #         ### Some rearrangment
+  #         
+  #         catt_fdr <- catt_fdr %>%
+  #           mutate(Average.Annotation_QValue = apply(m <- (catt_fdr[, str_which(colnames(catt_fdr), pattern = "Detection.Q.Value")]), 1, mean))
+  #         
+  #         ##### Some plot
+  #         
+  #         pnum <- ggarrange(p1, p2, p3, ncol = 3)
+  #         pnum
+  #         
+  #         print(pnum)
+  #         
+  #         incProgress(0.1, detail = "plotting")
+  #         Sys.sleep(0.25)
+  #       }
+  #     })
+  # })
+  
+  
+  # ///////////////////////////////////////////////////////////////////////////////////
+  
+  #### Protein Intensities Correlation
+  
+  output$multiprotIntPlot <- renderPlot({
+    if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat1 <- reportread1()
+          dat2 <- reportread2()
+          dat3 <- reportread3()
+
+          dat1 <- dat1[!duplicated(dat1$Modified.Sequence),]
+          dat2 <- dat2[!duplicated(dat2$Modified.Sequence),]
+          dat3 <- dat3[!duplicated(dat3$Modified.Sequence),]
+
+          dat1_dat2_comm_pep <- intersect(dat1$Modified.Sequence, dat2$Modified.Sequence)
+
+          dat1_dat3_comm_pep <- intersect(dat1$Modified.Sequence, dat3$Modified.Sequence)
+
+          dat2_dat3_comm_pep <- intersect(dat2$Modified.Sequence, dat3$Modified.Sequence)
+
+          dat1_dat2_dat3_comm_pep <- intersect(intersect(dat1_dat2_comm_pep, dat1_dat3_comm_pep), dat2_dat3_comm_pep)
+
+          # 
+          dat1_int <- dat1[dat1$Peptide %in% dat1_dat2_dat3_comm_pep, ]
+          dat2_int <- dat2[dat2$Peptide %in% dat1_dat2_dat3_comm_pep, ]
+          dat3_int <- dat3[dat3$Peptide %in% dat1_dat2_dat3_comm_pep,]
+          # 
+          dat1_int2 <- dat1_int[order(dat1_int$Peptide),]
+          dat2_int2 <- dat2_int[order(dat2_int$Peptide),]
+          dat3_int2 <- dat3_int[order(dat3_int$Peptide),]
+          # 
+          # 
+          dat1_int2[, str_which(colnames(dat1_int2), pattern = "Normalized.Area")] <- apply(m <- (dat1_int2[, str_which(colnames(dat1_int2), pattern = "Normalized.Area")]), 2, as.numeric)
+
+          agg_dat1 <- dplyr::group_by(dat1_int2, Protein.Name)
+          agg_dat1 <- agg_dat1 %>% summarise_at(vars(ends_with("Normalized.Area")),sum)
+
+          dat1 <- merge(dat1_int2, agg_dat1, by = "Protein.Name", all = TRUE)
+          dat1 <- dat1[order(dat1$Peptide),]
+
+          dat1 <- dat1[!duplicated(dat1$Protein.Name),]
+
+          dat1[is.na(dat1)] <- 0
+          # ##
+          # 
+          dat2_int2[, str_which(colnames(dat2_int2), pattern = "Normalized.Area")] <- apply(m <- (dat2_int2[, str_which(colnames(dat2_int2), pattern = "Normalized.Area")]), 2, as.numeric)
+
+          agg_dat2 <- dplyr::group_by(dat2_int2, Protein.Name)
+          agg_dat2 <- agg_dat2 %>% summarise_at(vars(ends_with("Normalized.Area")),sum)
+
+          dat2 <- merge(dat2_int2, agg_dat2, by = "Protein.Name", all = TRUE)
+          dat2 <- dat2[order(dat2$Peptide),]
+
+          dat2 <- dat2[!duplicated(dat2$Protein.Name),]
+
+          dat2[is.na(dat2)] <- 0
+          # ##
+          # 
+          dat3_int2[, str_which(colnames(dat3_int2), pattern = "Normalized.Area")] <- apply(m <- (dat3_int2[, str_which(colnames(dat3_int2), pattern = "Normalized.Area")]), 2, as.numeric)
+
+          agg_dat3 <- dplyr::group_by(dat3_int2, Protein.Name)
+          agg_dat3 <- agg_dat3 %>% summarise_at(vars(ends_with("Normalized.Area")),sum)
+
+          dat3 <- merge(dat3_int2, agg_dat3, by = "Protein.Name", all = TRUE)
+          dat3 <- dat3[order(dat3$Peptide),]
+
+          dat3 <- dat3[!duplicated(dat3$Protein.Name),]
+
+          dat3[is.na(dat3)] <- 0
+          # ####
+          # 
+          # 
+          dat1 <- dat1 %>%
+            mutate(Average.Intensity.dat1 = apply(m <- (dat1[, str_which(colnames(dat1), pattern = "Normalized.Area.y")]), 1, mean))
+          dat2 <- dat2 %>%
+            mutate(Average.Intensity.dat2 = apply(m <- (dat2[, str_which(colnames(dat2), pattern = "Normalized.Area.y")]), 1, mean))
+          dat3 <- dat3 %>%
+            mutate(Average.Intensity.dat3 = apply(m <- (dat3[, str_which(colnames(dat3), pattern = "Normalized.Area.y")]), 1, mean))
+
+          # 
+          dat1_dat2 <- merge(dat1, dat2, by = 1)
+          dat1_dat2_dat3 <- merge(dat1_dat2, dat3, by = 1)
+
+          dat1_dat2_dat3 <- dat1_dat2_dat3 %>%
+            select(c("Protein.Name", "Average.Intensity.dat1", "Average.Intensity.dat2", "Average.Intensity.dat3"))
+          # 
+          dat1_dat2_dat3$Average.Intensity.dat1 <- log(x = dat1_dat2_dat3$Average.Intensity.dat1, base = 2)
+          dat1_dat2_dat3$Average.Intensity.dat2 <- log(x = dat1_dat2_dat3$Average.Intensity.dat2, base = 2)
+          dat1_dat2_dat3$Average.Intensity.dat3 <- log(x = dat1_dat2_dat3$Average.Intensity.dat3, base = 2)
+          # 
+          # 
+          row.names(dat1_dat2_dat3) <- dat1_dat2_dat3$Protein.Name
+          dat1_dat2_dat3_t <- dat1_dat2_dat3[, -1]
+          # 
+          dat1_dat2_dat3_max <- as.matrix(dat1_dat2_dat3_t)
+
+          annot_names <- data.frame("Dataset" = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name))
+          # 
+          # # annot_names <- read.delim("E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/my_df_to_use.csv", na.strings = T, sep = ",")
+          rownames(annot_names) <- c("Average.Intensity.dat1", "Average.Intensity.dat2", "Average.Intensity.dat3")
+          # 
+          # 
+          col = RColorBrewer::brewer.pal(6, "YlOrRd")
+          # 
+          # 
+          # ann_color = list(
+          #   Dataset = c(input$inputreport1$name = "#ff4945", input$inputreport2$name = "#2ac940", input$inputreport3$name = "#75a3e7")
+          # )
+          # 
+          # 
+          int_plot <- pheatmap(dat1_dat2_dat3_max, cluster_cols = T, cluster_rows = T,
+                   clustering_distance_rows = "correlation", clustering_distance_cols = "correlation",
+                   annotation_col = annot_names,
+                   cellheight = 7,
+                   cellwidth =30,
+                   fontsize_row = 8, fontsize_col = 8, border_color = NA,
+                   fontsize = 10,
+                   treeheight_row =20,
+                   show_colnames = F, color = col,
+                   # annotation_colors = ann_color[1],
+                   annotation_legend = T,
+                   legend = T,
+                   treeheight_col = 10,
+                   annotation_names_col = T
+                   ,clustering_method = "average"
+                   # scale = "row"
+                   # ,legend_labels = c("-3", "-2", "-1", "0", "1", "-2", "-3", "Intensity")
+                   # ,filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/protein_intensity2.tiff"
+                   , width = 10, height = 10
+                   # , main = "Heatmap of protein intensities (log)"
+                   , res = 300
+          )
+
+          # ppp <- grid.arrange(grobs = int_plot[[4]])
+          print(int_plot[[4]])
+
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+
+  
+  # ///////////////////////////////////////////////////////////////////////////////////
   
   
   #### Graphs Download
@@ -1930,19 +3156,19 @@ shinyServer(function(input, output, session) {
   #   data = lib2clean()
   #   
   #   if(input$inputextlibformat == "PeakView"){
-  #     write.csv(x = peakviewFormat(data), file = file)
+  #     write.table(x = peakviewFormat(data), file = file)
   #     
   #   } else if(input$inputextlibformat == "OpenSwath")
   #   {
-  #     write.csv(x = OswathFormat(data), file = file)
+  #     write.table(x = OswathFormat(data), file = file)
   #     
   #   } else if(input$inputextlibformat == "Skyline")
   #   {
-  #     write.csv(x = skylineFormat(data), file = file)
+  #     write.table(x = skylineFormat(data), file = file)
   #     
   #   } else # spectronaut
   #   {
-  #     write.csv(x = spectronautFormat(data), file = file)
+  #     write.table(x = spectronautFormat(data), file = file)
   #   }
   #   
   # }
