@@ -34,7 +34,10 @@ canonicalFormat = function(dat, format=c("peakview", "openswath", "skyline", "sp
     Q3 <- as.numeric(as.character(dat$ProductMz))
     RT_detected <- as.numeric(as.character(dat$Tr_recalibrated))
     protein_name <- dat$ProteinName
-    isotype <- as.factor(dat$GroupLabel)
+    isotype <- as.factor(dat$LabelType)
+    if(length(isotype) == 0) {
+      isotype <- as.factor(dat$GroupLabel)
+    }
     iRT <- as.numeric(as.character(dat$Tr_recalibrated))
     relative_intensity <- as.numeric(as.character(dat$LibraryIntensity))
     stripped_sequence <- dat$PeptideSequence
