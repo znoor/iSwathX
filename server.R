@@ -12,7 +12,7 @@ library(shinyBS)
 library(RColorBrewer)
 library(grid)
 library(gridExtra)
-library(pheatmap)
+# library(pheatmap)
 
 #source("outputLib.R")
 #source("openSwathFormat.R")
