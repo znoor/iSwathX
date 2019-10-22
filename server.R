@@ -29,9 +29,13 @@ source("computeIntensityCor.R")
 source("buildSpectraLibPair.R")
 source("reliabilityCheckLibrary.R")
 source("libSummary.R")
-# source("readReportFile.R")
-# source("processReport.R")
-# source("reportSummary.R")
+source("readReportFile.R")
+source("processReport.R")
+source("reportSummary.R")
+source("multiCorrLibThree.R")
+source("multiCorrLibFour.R")
+source("buildSpectralLibThree.R")
+source("buildSpectralLibFour.R")
 #source("reliabilityCheckSwath.R")
 
 
@@ -42,6 +46,8 @@ shinyServer(function(input, output, session) {
   
   
   shinyjs::disable("apply")
+  shinyjs::disable("tmultiapply")
+  shinyjs::disable("fmultiapply")
   shinyjs::disable("cleanupdate")
   shinyjs::disable("inclength")
   shinyjs::disable("downloadseedinputLibs")
@@ -66,6 +72,26 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$multireport,{
     shinyjs::show(id = "multireportpanel")
+  })
+  
+  observeEvent(input$tmultiapply, {
+    shinyjs::show(id = "multilibsummary")
+  })
+  
+  observeEvent(input$fmultiapply, {
+    shinyjs::show(id = "multilibsummary")
+  })
+  
+  observeEvent(input$tmultiapply, {
+    shinyjs::show(id = "multilibcompare")
+  })
+  
+  observeEvent(input$fmultiapply, {
+    shinyjs::show(id = "multilibcompare")
+  })
+  
+  observeEvent(input$corcompute, {
+    shinyjs::show(id = "corrstats")
   })
   
   ##### auto wizard start over button try
@@ -2471,7 +2497,7 @@ shinyServer(function(input, output, session) {
             # scale_y_continuous(breaks=seq(0, 300, 50))+
             #scale_fill_brewer(palette="Paired") +
             scale_fill_manual(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name), values=c("#ff4945", "#2ac940", "#75a3e7"))+
-            scale_x_discrete(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name)) +
+            # scale_x_discrete(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name)) +
             theme(axis.title.x = element_text(color="black", size=13, face="bold"),
                   axis.title.y = element_text(color="black", size=13, face="bold"), 
                   panel.background = element_rect(fill = "white",
@@ -2497,7 +2523,7 @@ shinyServer(function(input, output, session) {
             # scale_y_continuous(breaks=seq(0, 300, 50))+
             #scale_fill_brewer(palette="Paired") +
             scale_fill_manual(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name), values=c("#ff4945", "#2ac940", "#75a3e7"))+
-            scale_x_discrete(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name)) +
+            # scale_x_discrete(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name)) +
             theme(axis.title.x = element_text(color="black", size=13, face="bold"),
                   axis.title.y = element_text(color="black", size=13, face="bold"), 
                   panel.background = element_rect(fill = "white",
@@ -3408,4 +3434,649 @@ shinyServer(function(input, output, session) {
   
   ####//////////////////////////////////////////////////////////////////////////////////
   
+  #### Reading and Combining Multiple libraries
+  
+  #### Selecting only one option at a time
+  
+  observeEvent(input$multireadthree, {
+    updateCheckboxInput(session, "multireadfour", value = FALSE)
+  })
+  
+  observeEvent(input$multireadfour, {
+    updateCheckboxInput(session, "multireadthree", value = FALSE)
+  })
+  
+  
+  ### Combining three libraries
+  
+  ### Seed library read
+  
+  tmseedlibdata <- eventReactive (input$tmultiapply, {
+    inFile <- input$tmultilib1
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      lib1 <- readLibFile(inFile$datapath, input$tmultilib1format, "spectrum", clean = FALSE)
+    return(lib1)
+  })
+  
+  ### External library 1 read
+  
+  tmextlibdata1 <- eventReactive (input$tmultiapply, {
+    inFile <- input$tmultilib2
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      lib2 <- readLibFile(inFile$datapath, input$tmultilib2format, "spectrum", clean = FALSE)
+    return(lib2)
+  })
+  
+  ### External library 2 read
+  
+  tmextlibdata2 <- eventReactive (input$tmultiapply, {
+    inFile <- input$tmultilib3
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      lib3 <- readLibFile(inFile$datapath, input$tmultilib3format, "spectrum", clean = FALSE)
+    return(lib3)
+  })
+  
+  ### Seed library reading reactive
+  
+  tmseedlibread <- reactive({
+    inFile <- input$tmultilib1
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      readLibFile(inFile$datapath, input$tmultilib1format, "spectrum", clean = FALSE)
+    
+  })
+  
+  ### External Library 1 reading reactive
+  
+  tmextlibread1 <- reactive({
+    inFile <- input$tmultilib2
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      readLibFile(inFile$datapath, input$tmultilib2format, "spectrum", clean = FALSE)
+  })
+  
+  ### External Library 2 reading reactive
+  
+  tmextlibread2 <- reactive({
+    inFile <- input$tmultilib3
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      readLibFile(inFile$datapath, input$tmultilib3format, "spectrum", clean = FALSE)
+  })
+  
+  
+####################################################################################
+  ###############################################################################
+  
+  ### Combining four libraries
+  
+  ### Seed library read
+  
+  fmseedlibdata <- eventReactive (input$fmultiapply, {
+    inFile <- input$fmultilib1
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      lib1 <- readLibFile(inFile$datapath, input$fmultilib1format, "spectrum", clean = FALSE)
+    return(lib1)
+  })
+  
+  ### External library 1 read
+  
+  fmextlibdata1 <- eventReactive (input$fmultiapply, {
+    inFile <- input$fmultilib2
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      lib2 <- readLibFile(inFile$datapath, input$fmultilib2format, "spectrum", clean = FALSE)
+    return(lib2)
+  })
+  
+  ### External library 2 read
+  
+  fmextlibdata2 <- eventReactive (input$fmultiapply, {
+    inFile <- input$fmultilib3
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      lib3 <- readLibFile(inFile$datapath, input$fmultilib3format, "spectrum", clean = FALSE)
+    return(lib3)
+  })
+  
+  ### External library 3 read
+  
+  fmextlibdata3 <- eventReactive (input$fmultiapply, {
+    inFile <- input$fmultilib4
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      lib4 <- readLibFile(inFile$datapath, input$fmultilib4format, "spectrum", clean = FALSE)
+    return(lib4)
+  })
+  
+  ### Seed library reading reactive
+  
+  fmseedlibread <- reactive({
+    inFile <- input$fmultilib1
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      readLibFile(inFile$datapath, input$fmultilib1format, "spectrum", clean = FALSE)
+    
+  })
+  
+  ### External Library 1 reading reactive
+  
+  fmextlibread1 <- reactive({
+    inFile <- input$fmultilib2
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      readLibFile(inFile$datapath, input$fmultilib2format, "spectrum", clean = FALSE)
+  })
+  
+  ### External Library 2 reading reactive
+  
+  tmextlibread2 <- reactive({
+    inFile <- input$fmultilib3
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      readLibFile(inFile$datapath, input$fmultilib3format, "spectrum", clean = FALSE)
+  })
+  
+  ### External Library 3 reading reactive
+  
+  tmextlibread3 <- reactive({
+    inFile <- input$fmultilib4
+    
+    if(is.null(inFile)) {
+      return(NULL)
+    } else
+      readLibFile(inFile$datapath, input$fmultilib4format, "spectrum", clean = FALSE)
+  })
+  
+  #############################################################################
+  ###############################################################################
+  
+  #### Enable tapply button    
+  output$treadapply <- renderUI({
+    
+    inFile1 <- input$tmultilib1
+    inFile2 <- input$tmultilib2
+    inFile3 <- input$tmultilib3
+    if(is.null(inFile1) && is.null(inFile2) && is.null(inFile3)) return()
+    
+    # if (is.null(lib1read()) && is.null(lib2read())) return()
+    if(!is.null(inFile1) && !is.null(inFile2) && !is.null(inFile3))
+    shinyjs::enable("tmultiapply")
+  })  
+  
+  #### Enable fapply button    
+  output$freadapply <- renderUI({
+    
+    inFile1 <- input$fmultilib1
+    inFile2 <- input$fmultilib2
+    inFile3 <- input$fmultilib3
+    inFile4 <- input$fmultilib4
+    if(is.null(inFile1) && is.null(inFile2) && is.null(inFile3) && is.null(inFile4)) return()
+    
+    # if (is.null(lib1read()) && is.null(lib2read())) return()
+    if(!is.null(inFile1) && !is.null(inFile2) && !is.null(inFile3) && !is.null(inFile4))
+    shinyjs::enable("fmultiapply")
+  })  
+  
+  ######################################################################
+  #######################################################################
+  
+  ### Libraries Summaries (three)
+  observeEvent(input$tmultiapply, {
+    output$multiseedlibsummary <- renderText({
+      seeddata <- tmseedlibdata()
+      if(!is.null(seeddata)) {
+        summarydata <- libSummary(seeddata)
+        
+        paste0("Seed assay library contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+    output$multiextlibsummary1 <- renderText({
+      extdata1 <- tmextlibdata1()
+      if(!is.null(extdata1)) {
+        summarydata <- libSummary(extdata1)
+        
+        paste0("External library 1 contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+    output$multiextlibsummary2 <- renderText({
+      extdata2 <- tmextlibdata2()
+      if(!is.null(extdata2)) {
+        summarydata <- libSummary(extdata2)
+        
+        paste0("External library 2 contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+  })
+  
+  ###################################################################
+  
+  ### Libraries Summaries (three)
+  observeEvent(input$fmultiapply, {
+    output$multiseedlibsummary <- renderText({
+      seeddata <- fmseedlibdata()
+      if(!is.null(seeddata)) {
+        summarydata <- libSummary(seeddata)
+        
+        paste0("Seed assay library contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+    output$multiextlibsummary1 <- renderText({
+      extdata1 <- fmextlibdata1()
+      if(!is.null(extdata1)) {
+        summarydata <- libSummary(extdata1)
+        
+        paste0("External library 1 contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+    output$multiextlibsummary2 <- renderText({
+      extdata2 <- fmextlibdata2()
+      if(!is.null(extdata2)) {
+        summarydata <- libSummary(extdata2)
+        
+        paste0("External library 2 contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+    output$multiextlibsummary3 <- renderText({
+      extdata3 <- fmextlibdata3()
+      if(!is.null(extdata3)) {
+        summarydata <- libSummary(extdata3)
+        
+        paste0("External library 3 contains \n",  " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+               "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","),  "\n",
+               " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+      }
+    })
+  })
+  
+  #################### plot for multi library corr three and corrstats table
+  
+  multirtcordt3 <- reactive({
+    
+    if(!is.null(tmseedlibdata()) && !is.null(tmextlibdata1()) && !is.null(tmextlibdata2())) {
+      withProgress(message = "Generating correlation stats table", style = "notification", value = 0.1, {
+        for(i in 1:1) {
+          lib1 <- tmseedlibdata()
+          lib2 <- tmextlibdata1()
+          lib3 <- tmextlibdata2()
+          
+          data <- multiCorrLibThree(lib1, lib2, lib3, label1 = input$tmultilib1$name, label2 = input$tmultilib2$name, label3 = input$tmultilib3$name)
+          incProgress(0.1, detail = "computing..")
+          Sys.sleep(0.25)
+        }
+      })
+      return(data)
+    }
+    
+   else return(NULL)
+    
+    
+  })
+  
+  multirtcordt4 <- reactive({
+    
+    if(!is.null(fmseedlibdata()) && !is.null(fmextlibdata1()) && !is.null(fmextlibdata2()) && !is.null(fmextlibdata3())){
+      withProgress(message = "Generating correlation stats table", style = "notification", value = 0.1, {
+        for(i in 1:1) {
+          lib1 <- fmseedlibdata()
+          lib2 <- fmextlibdata1()
+          lib3 <- fmextlibdata2()
+          lib4 <- fmextlibdata3()
+          
+          data <- multiCorrLibFour(lib1, lib2, lib3, lib4, label1 = input$fmultilib1$name, label2 = input$fmultilib2$name, label3 = input$fmultilib3$name, label4 = input$fmultilib4$name)
+          incProgress(0.1, detail = "computing..")
+          Sys.sleep(0.25)
+        }
+      })
+      return(data)
+    }
+    
+    else return(NULL)
+    
+    
+  })
+
+  multirtcordt <- eventReactive(input$corcompute, {
+    
+    if(input$multireadthree == TRUE)
+      data <- multirtcordt3()
+    else if(input$multireadfour == TRUE)
+      data <- multirtcordt4()
+
+    return(data)
+  })
+  
+  observeEvent(input$corcompute, {
+    output$librariescorrstats <- DT::renderDataTable({
+      
+      data <- multirtcordt()
+      
+      if(is.null(data)) 
+        return ("data has no value")
+      else{
+      
+      # data <- multirtcordt4()
+      
+      DT::datatable(data = data[[1]],
+                    options = list(
+                      # pageLength = 10,
+                                   # scrollX = T,
+                                   # scrollY = "500px",
+                                   scrollCollapse = T,
+                                   autoWidth = T,
+                                   scroller.loadingIndicator = T),
+                    caption = paste("Correlation with Seed library")
+      )
+    }
+    })
+  })
+  
+  observeEvent(input$corcompute, {
+    output$multilibrtcorplot <- renderPlot({
+     
+      data <- multirtcordt()
+      
+      if(is.null(data)) 
+        return ()
+      else {
+        # data <- multirtcordt4()
+        data <- data[[2]]
+        
+        print(data)
+      }
+    })
+  })
+  
+  
+  ########################################
+  ########################
+  
+  ## Combining libraries
+  
+  multicombdt3 <- reactive({
+    
+    if(!is.null(tmseedlibdata()) && !is.null(tmextlibdata1()) && !is.null(tmextlibdata2())) {
+      withProgress(message = "Combining Three Libraries", style = "notification", value = 0.1, {
+        for(i in 1:1) {
+          lib1 <- tmseedlibdata()
+          lib2 <- tmextlibdata1()
+          lib3 <- tmextlibdata2()
+          
+          data <- buildSpectralLibThree(lib1, lib2, lib3, method = "time", clean = FALSE, merge = TRUE, nomod = FALSE,
+                                        consolidateAccession = input$multiconsacc, plot = input$multigplots, recalibrate = input$multirecalrt,
+                                        cutoff.r2 = input$multicutoffr2, cutoff.size = input$multicutofftsize, label1 = input$tmultilib1$name, 
+                                        label2 = input$tmultilib2$name, label3 = input$tmultilib3$name)
+          incProgress(0.1, detail = "computing..")
+          Sys.sleep(0.25)
+        }
+      })
+      return(data)
+    }
+    
+    else return(NULL)
+  })
+  
+  multicombdt4 <- reactive({
+
+    if(!is.null(fmseedlibdata()) && !is.null(fmextlibdata1()) && !is.null(fmextlibdata2()) && !is.null(fmextlibdata3())){
+      withProgress(message = "Combining Four Libraries", style = "notification", value = 0.1, {
+        for(i in 1:1) {
+          lib1 <- fmseedlibdata()
+          lib2 <- fmextlibdata1()
+          lib3 <- fmextlibdata2()
+          lib4 <- fmextlibdata3()
+
+          data <- buildSpectralLibFour(lib1, lib2, lib3, lib4, method = "time", clean = FALSE, merge = TRUE, nomod = FALSE,
+                                        consolidateAccession = input$multiconsacc, plot = input$multigplots, recalibrate = input$multirecalrt,
+                                        cutoff.r2 = input$multicutoffr2, cutoff.size = input$multicutofftsize, label1 = input$fmultilib1$name, 
+                                       label2 = input$fmultilib2$name, label3 = input$fmultilib3$name, label4 = input$fmultilib4$name)
+          incProgress(0.1, detail = "computing..")
+          Sys.sleep(0.25)
+        }
+      })
+      return(data)
+    }
+
+    else return(NULL)
+  })
+
+  multicombdt <- eventReactive(input$multicombrun, {
+
+    if(input$multireadthree == TRUE)
+      data <- multicombdt3()
+    else if(input$multireadfour == TRUE)
+      data <- multicombdt4()
+
+    return(data)
+  })
+  
+  
+  observeEvent(input$multicombrun, {
+    output$multicombineLib <- DT::renderDataTable({
+      data <- multicombdt()
+      
+      # if(is.null(data)) 
+      #   return ("data has no value")
+      # else{ 
+        
+        withProgress(message = "Generating combined library table", style = "notification", value = 0.1, {
+          for(i in 1:1) {
+            
+            data <- data[[1]]
+            
+            incProgress(0.1, detail = "computing..")
+            Sys.sleep(0.25)
+          }
+        })
+        
+        DT::datatable(data,
+                      options = list(
+                        pageLength = 10,
+                        scrollX = T,
+                        scrollY = "500px",
+                        scrollCollapse = T,
+                        autoWidth = T,
+                        scroller.loadingIndicator = T),
+                      caption = paste("Combined Library")
+        )
+      # }
+    })
+  })
+  
+  observeEvent(input$multicombrun, {
+    output$multicombplot <- renderPlot({
+
+      data <- multicombdt()
+      
+      if(!is.null(data)) {
+        withProgress(message = "Generating combined library plot", style = "notification", value = 0.1, {
+          for(i in 1:1) {
+            # data = combdatalib()
+            data <- data[[1]]
+
+            data2 <- data[!duplicated(data$modification_sequence),]
+            x <- aggregate(x = data2$modification_sequence, by = list(Protein = data2$uniprot_id, charge = data2$prec_z),
+                           FUN = function(x) {length(x)})
+            x$charge <- as.character(x$charge)
+            breaks1 <- pretty(range(x$x), n = nclass.FD(x$x), min.n = 1)
+            bwidth1 <- breaks1[3] - breaks1[1]
+
+            x2 <- aggregate(x = data$modification_sequence, by = list(Peptide = data$modification_sequence,
+                                                                      frg_type = data$frg_type), FUN = function(x2) {length(x2)})
+            breaks2 <- pretty(range(x2$x), n = nclass.FD(x2$x), min.n = 1)
+            bwidth2 <- breaks2[3] - breaks2[1]
+
+            incProgress(0.1, detail = "plotting")
+            Sys.sleep(0.25)
+          }
+        })
+
+        p1 <- ggplot(data = x, aes(x = x, fill = charge)) +
+          geom_histogram(binwidth = bwidth1) +
+          labs(x ="Number of Peptides", y = "Number of Proteins") +
+          # scale_y_continuous(name = "Frequency") +
+          scale_fill_brewer("Precursor Charge", palette = "YlOrRd")+
+          theme_classic() +
+          theme(plot.title = element_text(size = 14, face = "bold"),
+                axis.title = element_text(size = 11, face = "bold"),
+                axis.text.x = element_text(face = "bold", size = 12),
+                axis.text.y = element_text(face= "bold", size = 12))
+
+        p2 <- ggplot(data = x2, aes(x = x, fill = frg_type)) +
+          geom_histogram(binwidth = bwidth2) +
+          labs(x ="Number of Ions", y = "Number of Peptides") +
+          scale_fill_brewer("Fragment Type", palette = "PuRd") +
+          # scale_fill_manual(values = c("#eeba30", "#ae0001")) +
+          # scale_y_continuous(name = "Frequency") +
+          # scale_fill_gradient("Frequency", low = "blue", high = "red")+
+          theme_classic() +
+          theme(plot.title = element_text(size = 14, face = "bold"),
+                axis.title = element_text(size = 11, face = "bold"),
+                axis.text.x = element_text(face = "bold", size = 12),
+                axis.text.y = element_text(face= "bold", size = 12))
+
+        p <- annotate_figure(ggarrange(p1, p2, ncol = 2), top = "Frequency distribution of Peptides per Protein and Ions per Peptide")
+        print(p)
+
+        filepath <- getwd()
+        filepath2 <- paste0(filepath,"/graphs")
+        ggsave("Combined_Multi_library_plot.png", width = 8, height = 5, path = filepath2)
+
+      } else return()
+    })
+  })
+
+  observeEvent(input$multicombrun, {
+    output$multicomblibsummary <- renderText({
+      data <- multicombdt()
+    data <- data[[1]]
+    summarydata <- libSummary(data)
+    paste0("Combined library contains \n", " Proteins = ", formatC(summarydata[["proteins"]], format = "d", big.mark = ","),
+           "\n", " Unmodified Peptides = ", formatC(summarydata[["unmodpeptides"]], format = "d", big.mark = ","), "\n",
+           " Modified Peptides = ", formatC(summarydata[["modpeptides"]], format = "d", big.mark = ","), "\n",
+           " Transitions = ", formatC(summarydata[["transitions"]], format = "d", big.mark = ","))
+
+  })
+  })
+  
+  #///////////////////////////////////////////////////////
+  #########################################
+  
+  ## Downloading Combined Library
+  
+  ####  Output / Combined Libraries Download 
+  output$multidownloadoutputLib <- downloadHandler(filename = function () 
+  {paste("Combined", Sys.Date(), ".txt", sep = "_")
+  },
+  content = function (file) {
+    
+    data <- multicombdt()
+    data <- data[[1]]
+    
+    if(input$multioutputlibformat == "PeakView"){
+      write.table(x = peakviewFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
+    } else if(input$multioutputlibformat == "OpenSwath")
+    {
+      write.table(x = OswathFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
+    } else if(input$multioutputlibformat == "Skyline")
+    {
+      write.table(x = skylineFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
+    } else # spectronaut
+    {
+      write.table(x = spectronautFormat(data), file = file, row.names = F, na = " ", sep = "\t", quote = FALSE)
+    }
+    
+  }
+  )
+  
+  ##########################################################
+  ######################################################
+  
+  ## Multi Libraries Venn Diagrams
+  
+  observeEvent(input$multicombrun, {
+    output$multivenn1 <- renderPlot({
+      data <- multicombdt()
+      data <- data[[2]]
+      
+      if(!is.null(data))
+      {
+        print(data[[1]])
+      }
+    })
+  })
+  observeEvent(input$multicombrun, {
+    output$multivenn2 <- renderPlot({
+      data <- multicombdt()
+      data <- data[[2]]
+      
+      if(!is.null(data))
+      {
+        print(data[[2]])
+      }
+    })
+  })
+  observeEvent(input$multicombrun, {
+    output$multivenn3 <- renderPlot({
+      data <- multicombdt()
+      data <- data[[2]]
+      
+      if(!is.null(data))
+      {
+        print(data[[3]])
+      }
+    })
+  })
+  
+  ########################################################################################
+  ##########################################################
 })   ##### Server Function Ends Here
