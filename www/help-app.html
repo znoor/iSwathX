@@ -17,6 +17,8 @@
 <li style="font-size:160%;"><a href="#libraryfiles">Library Files</a></li>
 <li style="font-size:160%;"><a href="#iswathxwizard">iSwathX Wizard</a></li>
 <li style="font-size:160%;"><a href="#manualwizard">Manual Wizard</a></li>
+<li style="font-size:160%;"><a href="#multilibwizard">MultiLibraries Wizard</a></li>
+<li style="font-size:160%;"><a href="#diareportwizard">DIA Report Analysis and Visualization</a></li>
 <li style="font-size:160%;"><a href="#references">References</a></li>
 
 <h2><div id="availability"><span style="text-decoration: underline;"><b>1. Availability</b></span></div></h2>
@@ -171,7 +173,7 @@ As a result, it displays:
 <h3><b>4.3. Building Combined Libraries</b></h3>
 
 <h3><i>4.3.1. Parameters</i></h3>
-<p style="font-size:160%;">This section uses the input seed and addon library (uploaded previously), provides different parameters to be applied while combining the seed and addon libraries 
+<p style="font-size:160%;">This section uses the input seed and add-on library (uploaded previously), provides different parameters to be applied while combining the seed and addon libraries 
 and performs integration.
 <li style="font-size:160%;"> Method : method for aligning and predicting the retention times using either 'time' or 'hydrophobicity' methods.</li>
 <li style="font-size:160%;"> Consolidate Accessions : to consolidate the protein accessions in base and integrated library.</li>
@@ -215,6 +217,168 @@ and performs integration.
 <p style="font-size:160%;">A video tutorial for the working of this module is provided here. 
 <video width = "80%" height = "80%" controls>
 <source src = "video-tutorials/Visualization.mp4" type = "video/mp4">
+</video>
+</p>
+
+<hr></hr>
+
+<!--Adding for new module-->
+
+<h2><div id="multilibwizard"><span style="text-decoration: underline;"><b>5. MultiLibraries Wizard</b></span></div></h2>
+
+<h3><b>5.1. Reading and Comparing Multiple Libraries</b></h3>
+
+<h3><i>5.1.1. Reading Multiple Libraries</i></h3>
+<p style="font-size:160%;">This section takes input files in desired format using interactive upload facility. User can select one of the two given options, either 'Reading Three Libraries' or 'Reading Four Libraries'. 
+</p>
+
+<h3><i>5.1.2 Libraries Summary</i></h3>
+<p style="font-size:160%;">This section shows the brief summary of input library files:
+<li style="font-size:160%;"> Number of proteins</li>
+<li style="font-size:160%;"> Number of peptides</li>
+<li style="font-size:160%;"> Number of transition ions</li> 
+</p>
+
+<h3><i>5.1.3. Libraries Comparison</i></h3>
+<p style="font-size:160%;">This section uses the input seed and add-on libraries (uploaded previously) and performs retention time correlation and relative intensity correlation of seed lib with each of the add-on library, and rank them accordingly.
+As a result, it displays:
+<li style="font-size:160%;"> The data table of common peptides, retention time correlation, intensity correlation and rank of each library on the basis of correlation values. Add-on libraries are merged to the base library in a sequential manner according to their rank.</li>
+<li style="font-size:160%;"> Correlation graphs</li>
+</p>
+
+<h3><i>5.1.4. Video Tutorial</i></h3>
+<p style="font-size:160%;">A video tutorial for the working of this module is provided here. 
+<video width = "80%" height = "80%" controls>
+<source src = "video-tutorials/MultiLibraryRead_Comparison.mp4" type = "video/mp4">
+</video>
+</p>
+
+<h3><b>5.2. Building Combined Libraries</b></h3>
+
+<h3><i>5.2.1. Parameters</i></h3>
+<p style="font-size:160%;">This section uses the input seed and add-on libraries (uploaded previously), provides different parameters to be applied while combining the seed and add-on libraries 
+and performs integration.
+<li style="font-size:160%;"> Method : method for aligning and predicting the retention times using either 'time' or 'hydrophobicity' methods.</li>
+<li style="font-size:160%;"> Consolidate Accessions : to consolidate the protein accessions in base and integrated library.</li>
+<li style="font-size:160%;"> Generate Plots : to plot the libraries statistics and analysis.</li>
+<li style="font-size:160%;"> Merge Libraries : to merge the base library to the new spectra of addon library.</li>
+<li style="font-size:160%;"> Re-calibrate Retention Times : To adjust the retention times of addon library in case of low retention times correlation.</li>
+<li style="font-size:160%;"> Retention Time Correlation Cutoff : Minimum correlation coefficient.</li>
+<li style="font-size:160%;"> Training size Cutoff :  Minimum number of common peptides in training set.</li>
+</p>
+
+<h3><i>5.2.2. Library Table</i></h3>
+<p style="font-size:160%;">Combined library is displayed in the form of a table. 
+</p>
+
+<h3><i>5.2.3. Download Library</i></h3>
+<p style="font-size:160%;">Combined library can be downloaded in desired format using interactive download facility. 
+</p>
+
+<h3><i>5.2.4. Video Tutorial</i></h3>
+<p style="font-size:160%;">A video tutorial for the working of this module is provided here. 
+<video width = "80%" height = "80%" controls>
+<source src = "video-tutorials/MultiLibraryIntegration.mp4" type = "video/mp4">
+</video>
+</p>
+
+<h3><b>5.3. Data Visualization</b></h3>
+
+<h3><i>5.3.1. Venn Diagrams</i></h3>
+<p style="font-size:160%;">In this module, Venn diagrams of proteins and peptides are shown for each iteration (merging of each add-on library). 
+</p>
+
+<h3><i>5.3.2. Video Tutorial</i></h3>
+<p style="font-size:160%;">A video tutorial for the working of this module is provided here. 
+<video width = "80%" height = "80%" controls>
+<source src = "video-tutorials/MultiVisualization.mp4" type = "video/mp4">
+</video>
+</p>
+
+<hr></hr>
+
+<!--Adding for new module-->
+
+<h2><div id="diareportwizard"><span style="text-decoration: underline;"><b>6. DIA Report Analysis and Visualization</b></span></div></h2>
+
+<h3><b>6.1. DIA Report File Reading and Processing</b></h3>
+
+<h3><i>6.1.1. Reading DIA Report File</i></h3>
+<p style="font-size:160%;">This section reads the DIA report file (currently from the Skyline Software). 
+</p>
+
+<h3><i>6.1.2 Process Report File</i></h3>
+<p style="font-size:160%;">This section process the report file by:
+<li style="font-size:160%;"> Removing standard peptides</li>
+<li style="font-size:160%;"> Calculating average dotp values</li>
+<li style="font-size:160%;"> Calculating average mass error values</li>
+<li style="font-size:160%;"> Calculating average retention time values</li>
+<li style="font-size:160%;"> Calculating average q-values values</li> 
+</p>
+
+<h3><i>6.1.3. Download Report File</i></h3>
+<p style="font-size:160%;">Processed report file (with added columns) can be downloaded using interactive download facility. 
+</p>
+
+<h3><i>6.1.4. Video Tutorial</i></h3>
+<p style="font-size:160%;">A video tutorial for the working of this module is provided here. 
+<video width = "80%" height = "80%" controls>
+<source src = "video-tutorials/ReadingReportFile.mp4" type = "video/mp4">
+</video>
+</p>
+
+<h3><b>6.2. Quality Check Plots</b></h3>
+
+<h3><i>6.2.1. Plotting different quality parameters among data from runs</i></h3>
+<p style="font-size:160%;">This section uses the input report file (uploaded previously) and plots different parameters to be applied performing DIA data analysis.
+<li style="font-size:160%;"> Dot Product : a correlation between observed (library) and measured (DIA) spectra and ‘1’ means a perfect match.</li>
+<li style="font-size:160%;"> Intensity Distribution : Area under the curve for peptides.</li>
+<li style="font-size:160%;"> Mass Error : to plot the libraries statistics and analysis.</li>
+<li style="font-size:160%;"> Coefficient of Variation (CV) (among technical replicates) : the ratio of peptide abundance to the median peptide abundance measured across all samples. </li>
+<li style="font-size:160%;"> Q-Values : the minimum false discovery rate (FDR).</li>
+<li style="font-size:160%;"> DDA-DIA RT Correlation : Pearson correlation between peptide retention times from DDA and DIA datasets.</li>
+</p>
+
+<h3><i>6.2.2. Video Tutorial</i></h3>
+<p style="font-size:160%;">A video tutorial for the working of this module is provided here. 
+<video width = "80%" height = "80%" controls>
+<source src = "video-tutorials/PlottingReportFile.mp4" type = "video/mp4">
+</video>
+</p>
+
+<h3><b>6.3. Proteins Intensity</b></h3>
+
+<h3><i>6.3.1. Calculating and Plotting Protein Intensity Values </i></h3>
+<p style="font-size:160%;">This section uses the input report file (uploaded previously), and plots protein intensities calculated by summing the normalized area values of corresponding peptides.
+</p>
+
+<h3><i>6.3.2. Video Tutorial</i></h3>
+<p style="font-size:160%;">A video tutorial for the working of this module is provided here. 
+<video width = "80%" height = "80%" controls>
+<source src = "video-tutorials/PlottingProtIntensities.mp4" type = "video/mp4">
+</video>
+</p>
+
+<h3><b>6.4. Multiple Reports Comparison</b></h3>
+
+<h3><i>6.4.1. Reading Report Files</i></h3>
+<p style="font-size:160%;">This section reads report files (currently in Skyline format) using interactive upload facility. User is asked to set the names for each of the datasets. 
+</p>
+
+<h3><i>6.4.2. Comparison Plots</i></h3>
+<p style="font-size:160%;">This section performs and plots the comparison between multiple report files. 
+
+It displays:
+<li style="font-size:160%;"> Report Statistics: Number of proteins and peptides in each dataset</li>
+<li style="font-size:160%;"> Venn Diagrams: Common and unique proteins and peptides quantified in each dataset</li>
+<li style="font-size:160%;"> Retention Time Correlation: DIA Retention time correlation between common peptides quantified in each dataset</li>
+<li style="font-size:160%;"> Coefficient of Variation (CV): CV (the ratio of peptide abundance to the median peptide abundance measured across all samples) comparison</li>
+</p>
+
+<h3><i>6.4.3. Video Tutorial</i></h3>
+<p style="font-size:160%;">A video tutorial for the working of this module is provided here. 
+<video width = "80%" height = "80%" controls>
+<source src = "video-tutorials/MultiReportVisualization.mp4" type = "video/mp4">
 </video>
 </p>
 
