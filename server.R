@@ -12,7 +12,7 @@ library(shinyBS)
 library(RColorBrewer)
 library(grid)
 library(gridExtra)
-# library(pheatmap)
+library(pheatmap)
 
 #source("outputLib.R")
 #source("openSwathFormat.R")
@@ -29,14 +29,14 @@ source("computeIntensityCor.R")
 source("buildSpectraLibPair.R")
 source("reliabilityCheckLibrary.R")
 source("libSummary.R")
-# source("readReportFile.R")
-# source("processReport.R")
-# source("reportSummary.R")
-# source("multiCorrLibThree.R")
-# source("multiCorrLibFour.R")
-# source("buildSpectralLibThree.R")
-# source("buildSpectralLibFour.R")
-#source("reliabilityCheckSwath.R")
+source("readReportFile.R")
+source("processReport.R")
+source("reportSummary.R")
+source("multiCorrLibThree.R")
+source("multiCorrLibFour.R")
+source("buildSpectralLibThree.R")
+source("buildSpectralLibFour.R")
+# source("reliabilityCheckSwath.R")
 
 
 shinyServer(function(input, output, session) {
@@ -2061,6 +2061,8 @@ shinyServer(function(input, output, session) {
           ## some plot
           getPalette = colorRampPalette(brewer.pal(9, "Dark2"))
           
+          dat[dat == 0] <- NA
+          
           dp <- ggplot(data = dat, aes(y = Dot.Product, x = "", fill = Replicates)) +
             geom_boxplot(alpha = 1,
                          notch = TRUE, notchwidth = 0.8,
@@ -2352,7 +2354,7 @@ shinyServer(function(input, output, session) {
   # 
   output$intensity_table <- DT::renderDataTable({
 
-    if(!is.null(reportread()))
+    if(!is.null(reportread())) {
       withProgress(message = "Generating Table", style = "notification", value = 0.1, {
         for (i in 1:1) {
           dat <- reportread()
@@ -2390,6 +2392,7 @@ shinyServer(function(input, output, session) {
                                  scroller.loadingIndicator = T)
                   # caption = input$seedlib$name
     )
+    }
 
   })
   
@@ -2397,7 +2400,7 @@ shinyServer(function(input, output, session) {
   # 
   output$intensity_plot <- renderPlot({
 
-    if(!is.null(reportread()))
+    if(!is.null(reportread())) {
       withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
         for (i in 1:1) {
           dat <- reportread()
@@ -2461,6 +2464,7 @@ shinyServer(function(input, output, session) {
           Sys.sleep(0.25)
         }
       })
+    }
 
   })
   
@@ -2487,7 +2491,7 @@ shinyServer(function(input, output, session) {
           
           extractions_data <- data.frame("Proteins" = c(length(dat1_prot), length(dat2_prot), length(dat3_prot)),
                                          "Peptides" = c(length(dat1_pep), length(dat2_pep), length(dat3_pep)),
-                                         "Data" = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name))
+                                         "Data" = c(input$dataset1, input$dataset2, input$dataset3))
           
           rep_prot <- ggplot(data=extractions_data, aes(x = Data, y = Proteins, fill = Data)) +
             geom_bar(stat = "identity", alpha = 0.8, position=position_dodge(), width = 0.9) +
@@ -2496,7 +2500,7 @@ shinyServer(function(input, output, session) {
             size=5) +
             # scale_y_continuous(breaks=seq(0, 300, 50))+
             #scale_fill_brewer(palette="Paired") +
-            scale_fill_manual(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name), values=c("#ff4945", "#2ac940", "#75a3e7"))+
+            scale_fill_manual(labels = c(input$dataset1, input$dataset2, input$dataset3), values=c("#ff4945", "#2ac940", "#75a3e7"))+
             # scale_x_discrete(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name)) +
             theme(axis.title.x = element_text(color="black", size=13, face="bold"),
                   axis.title.y = element_text(color="black", size=13, face="bold"), 
@@ -2522,7 +2526,7 @@ shinyServer(function(input, output, session) {
             size=5) +
             # scale_y_continuous(breaks=seq(0, 300, 50))+
             #scale_fill_brewer(palette="Paired") +
-            scale_fill_manual(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name), values=c("#ff4945", "#2ac940", "#75a3e7"))+
+            scale_fill_manual(labels = c(input$dataset1, input$dataset2, input$dataset3), values=c("#ff4945", "#2ac940", "#75a3e7"))+
             # scale_x_discrete(labels = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name)) +
             theme(axis.title.x = element_text(color="black", size=13, face="bold"),
                   axis.title.y = element_text(color="black", size=13, face="bold"), 
@@ -2574,7 +2578,7 @@ shinyServer(function(input, output, session) {
           dat3_pep <- dat3[!duplicated(dat3$Modified.Sequence),"Modified.Sequence"]
           
           d1_d2_pep <- venn.diagram(list(dat1_pep, dat2_pep),
-                                  category.names = c(input$inputreport1$name , input$inputreport2$name),
+                                  category.names = c(input$dataset1, input$dataset2),
                                   resolution = 500,
                                   # height = 1000,
                                   # width = 1000,
@@ -2592,7 +2596,7 @@ shinyServer(function(input, output, session) {
                                   # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Peptides.tiff"
                                   filename = NULL)
           d1_d2_pro <- venn.diagram(list(dat1_prot, dat2_prot),
-                                  category.names = c(input$inputreport1$name , input$inputreport2$name),
+                                  category.names = c(input$dataset1, input$dataset2),
                                   resolution = 500,
                                   # height = 1000,
                                   # width = 1000,
@@ -2648,7 +2652,7 @@ shinyServer(function(input, output, session) {
           dat3_pep <- dat3[!duplicated(dat3$Modified.Sequence),"Modified.Sequence"]
           
           d2_d3_pep <- venn.diagram(list(dat2_pep, dat3_pep),
-                                    category.names = c(input$inputreport2$name , input$inputreport3$name),
+                                    category.names = c(input$dataset2, input$dataset3),
                                     resolution = 500,
                                     # height = 1000,
                                     # width = 1000,
@@ -2666,7 +2670,7 @@ shinyServer(function(input, output, session) {
                                     # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Peptides.tiff"
                                     filename = NULL)
           d2_d3_pro <- venn.diagram(list(dat2_prot, dat3_prot),
-                                    category.names = c(input$inputreport2$name , input$inputreport3$name),
+                                    category.names = c(input$dataset2, input$dataset3),
                                     resolution = 500,
                                     # height = 1000,
                                     # width = 1000,
@@ -2722,7 +2726,7 @@ shinyServer(function(input, output, session) {
           dat3_pep <- dat3[!duplicated(dat3$Modified.Sequence),"Modified.Sequence"]
           
           d1_d3_pep <- venn.diagram(list(dat1_pep, dat3_pep),
-                                    category.names = c(input$inputreport1$name , input$inputreport3$name),
+                                    category.names = c(input$dataset1, input$dataset3),
                                     resolution = 500,
                                     # height = 1000,
                                     # width = 1000,
@@ -2740,7 +2744,7 @@ shinyServer(function(input, output, session) {
                                     # filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/Cattle_SELheep_Peptides.tiff"
                                     filename = NULL)
           d1_d3_pro <- venn.diagram(list(dat1_prot, dat3_prot),
-                                    category.names = c(input$inputreport1$name , input$inputreport3$name),
+                                    category.names = c(input$dataset1, input$dataset3),
                                     resolution = 500,
                                     # height = 1000,
                                     # width = 1000,
@@ -2797,7 +2801,7 @@ shinyServer(function(input, output, session) {
           
           d123_pep <- venn.diagram(
             x = list(dat1_pep, dat2_pep, dat3_pep),
-            category.names = c(input$inputreport1$name , input$inputreport2$name , input$inputreport3$name),
+            category.names = c(input$dataset1, input$dataset2, input$dataset3),
             # height = 2000,
             # width = 2000,
             resolution = 500,
@@ -2820,7 +2824,7 @@ shinyServer(function(input, output, session) {
           
           d123_pro <- venn.diagram(
             x = list(dat1_prot, dat2_prot, dat3_prot),
-            category.names = c(input$inputreport1$name , input$inputreport2$name , input$inputreport3$name),
+            category.names = c(input$dataset1, input$dataset2, input$dataset3),
             resolution = 500,
             # height = 1000,
             # width = 1000,
@@ -2907,9 +2911,9 @@ shinyServer(function(input, output, session) {
                        cor(as.numeric(dat1_dat2$Average.Measured.Retention.Time.x), as.numeric(dat1_dat2$Average.Measured.Retention.Time.y)), digits = 3)))),
                      color = "black", parse = T) +
             stat_smooth(method = "auto", col = "red", se = T, size = 0.8)+
-            scale_y_continuous(input$inputreport1$name, limits = c(min(dat1_dat2$Average.Measured.Retention.Time.y), max(dat1_dat2$Average.Measured.Retention.Time.y)),
+            scale_y_continuous(input$dataset1, limits = c(min(dat1_dat2$Average.Measured.Retention.Time.y), max(dat1_dat2$Average.Measured.Retention.Time.y)),
                                expand = c(0,0)) +
-            scale_x_continuous(input$inputreport2$name, limits = c(min(dat1_dat2$Average.Measured.Retention.Time.x), max(dat1_dat2$Average.Measured.Retention.Time.x)),
+            scale_x_continuous(input$dataset2, limits = c(min(dat1_dat2$Average.Measured.Retention.Time.x), max(dat1_dat2$Average.Measured.Retention.Time.x)),
                                expand = c(0,0)) +
             theme(panel.background = element_rect(fill = "white",
                                                   colour = "white",
@@ -2928,9 +2932,9 @@ shinyServer(function(input, output, session) {
                        cor(as.numeric(dat1_dat3$Average.Measured.Retention.Time.x), as.numeric(dat1_dat3$Average.Measured.Retention.Time.y)), digits = 3)))),
                      color = "black", parse = T) +
             stat_smooth(method = "auto", col = "red", se = T, size = 0.8)+
-            scale_y_continuous(input$inputreport1$name, limits = c(min(dat1_dat3$Average.Measured.Retention.Time.y), max(dat1_dat3$Average.Measured.Retention.Time.y)),
+            scale_y_continuous(input$dataset1, limits = c(min(dat1_dat3$Average.Measured.Retention.Time.y), max(dat1_dat3$Average.Measured.Retention.Time.y)),
                                expand = c(0,0)) +
-            scale_x_continuous(input$inputreport3$name, limits = c(min(dat1_dat3$Average.Measured.Retention.Time.x), max(dat1_dat3$Average.Measured.Retention.Time.x)),
+            scale_x_continuous(input$dataset3, limits = c(min(dat1_dat3$Average.Measured.Retention.Time.x), max(dat1_dat3$Average.Measured.Retention.Time.x)),
                                expand = c(0,0)) +
             theme(panel.background = element_rect(fill = "white",
                                                   colour = "white",
@@ -2949,9 +2953,9 @@ shinyServer(function(input, output, session) {
                        cor(as.numeric(dat2_dat3$Average.Measured.Retention.Time.x), as.numeric(dat2_dat3$Average.Measured.Retention.Time.y)), digits = 3)))),
                      color = "black", parse = T) +
             stat_smooth(method = "auto", col = "red", se = T, size = 0.8)+
-            scale_y_continuous(input$inputreport2$name, limits = c(min(dat2_dat3$Average.Measured.Retention.Time.y), max(dat2_dat3$Average.Measured.Retention.Time.y)),
+            scale_y_continuous(input$dataset2, limits = c(min(dat2_dat3$Average.Measured.Retention.Time.y), max(dat2_dat3$Average.Measured.Retention.Time.y)),
                                expand = c(0,0)) +
-            scale_x_continuous(input$inputreport3$name, limits = c(min(dat2_dat3$Average.Measured.Retention.Time.x), max(dat2_dat3$Average.Measured.Retention.Time.x)),
+            scale_x_continuous(input$dataset3, limits = c(min(dat2_dat3$Average.Measured.Retention.Time.x), max(dat2_dat3$Average.Measured.Retention.Time.x)),
                                expand = c(0,0)) +
             theme(panel.background = element_rect(fill = "white",
                                                   colour = "white",
@@ -2979,7 +2983,7 @@ shinyServer(function(input, output, session) {
   
   #### Transition Ratio Correlation
   
-  # output$multitransCor <- renderPlot({
+  # output$multitransCorPlot <- renderPlot({
   #   if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
   #     withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
   #       for (i in 1:1) {
@@ -2987,44 +2991,288 @@ shinyServer(function(input, output, session) {
   #         dat2 <- reportread2()
   #         dat3 <- reportread3()
   #         
-  #         
-  #         dat1 <- dat1[!duplicated(dat1$Modified.Sequence),]
-  #         dat2 <- dat2[!duplicated(dat2$Modified.Sequence),]
-  #         dat3 <- dat3[!duplicated(dat3$Modified.Sequence),]
-  #         
-  #         
+  #         dat1 <- dat1 %>%
+  #           select("Protein.Name", "Peptide", "Modified.Sequence", "Fragment.Ion", 
+  #                  str_which(colnames(dat1), pattern = "Peak.Rank"), str_which(colnames(dat1), fixed(pattern ="Area"))) 
+  #         dat2 <- dat2 %>%
+  #           select("Protein.Name", "Peptide", "Modified.Sequence", "Fragment.Ion", 
+  #                  str_which(colnames(dat2), pattern = "Peak.Rank"), str_which(colnames(dat2), fixed(pattern ="Area"))) 
+  #         dat3 <- dat3 %>%
+  #           select("Protein.Name", "Peptide", "Modified.Sequence", "Fragment.Ion", 
+  #                  str_which(colnames(dat3), pattern = "Peak.Rank"), str_which(colnames(dat3), fixed(pattern ="Area"))) 
+  # 
+  # 
   #         dat1[, str_which(colnames(dat1), pattern = "Area")] <- apply(m <- (dat1[, str_which(colnames(dat1), pattern = "Area")]), 2, as.numeric)
   #         dat1[, str_which(colnames(dat1), pattern = "Peak.Rank")] <- apply(m <- (dat1[, str_which(colnames(dat1), pattern = "Peak.Rank")]), 2, as.numeric)
   #         dat1 <- na.omit(dat1)
-  #         
+  # 
   #         dat2[, str_which(colnames(dat2), pattern = "Area")] <- apply(m <- (dat2[, str_which(colnames(dat2), pattern = "Area")]), 2, as.numeric)
   #         dat2[, str_which(colnames(dat2), pattern = "Peak.Rank")] <- apply(m <- (dat2[, str_which(colnames(dat2), pattern = "Peak.Rank")]), 2, as.numeric)
   #         dat2 <- na.omit(dat2)
-  #         
+  # 
   #         dat3[, str_which(colnames(dat3), pattern = "Area")] <- apply(m <- (dat3[, str_which(colnames(dat3), pattern = "Area")]), 2, as.numeric)
   #         dat3[, str_which(colnames(dat3), pattern = "Peak.Rank")] <- apply(m <- (dat3[, str_which(colnames(dat3), pattern = "Peak.Rank")]), 2, as.numeric)
   #         dat3 <- na.omit(dat3)
-  #         
+  # 
   #         ### Some rearrangment
+  # 
+  #         dat1_tr <- dat1[!duplicated(dat1$Modified.Sequence), c("Protein.Name", "Peptide", "Modified.Sequence")]
+  #         dat2_tr <- dat2[!duplicated(dat2$Modified.Sequence), c("Protein.Name", "Peptide", "Modified.Sequence")]
+  #         dat3_tr <- dat3[!duplicated(dat3$Modified.Sequence), c("Protein.Name", "Peptide", "Modified.Sequence")]
+  # 
+  # 
+  #         area_col <- dat1[, str_which(colnames(dat1), pattern = "Area")]
+  #         area_col_names <- colnames(area_col)
   #         
-  #         catt_fdr <- catt_fdr %>%
-  #           mutate(Average.Annotation_QValue = apply(m <- (catt_fdr[, str_which(colnames(catt_fdr), pattern = "Detection.Q.Value")]), 1, mean))
-  #         
+  # dat1_tr <- dat1_tr %>%
+  # mutate(RP1.Transition.Ratio = dat1[dat1$RP1.Peak.Rank == 1, area_col_names[1]] / 
+  #          dat1[dat1$RP1.Peak.Rank == 2, area_col_names[1]])
+  # dat1_tr <- dat1_tr %>%
+  #   mutate(RP2.Transition.Ratio = dat1[dat1$RP2.Peak.Rank == 1, area_col_names[2]] / 
+  #            dat1[dat1$RP2.Peak.Rank == 2, area_col_names[2]])
+  # dat1_tr <- dat1_tr %>%
+  #   mutate(RP3.Transition.Ratio = dat1[dat1$RP3.Peak.Rank == 1, area_col_names[3]] / 
+  #            dat1[dat1$RP3.Peak.Rank == 2, area_col_names[3]])
+  # dat1_tr <- dat1_tr %>%
+  #   mutate(RP4.Transition.Ratio = dat1[dat1$RP4.Peak.Rank == 1, area_col_names[4]] / 
+  #            dat1[dat1$RP4.Peak.Rank == 2, area_col_names[4]])
+  # dat1_tr <- dat1_tr %>%
+  #   mutate(RP5.Transition.Ratio = dat1[dat1$RP5.Peak.Rank == 1, area_col_names[5]] / 
+  #            dat1[dat1$RP5.Peak.Rank == 2, area_col_names[5]])
+  # 
+  # ################################################################
+  # 
+  # area_col <- dat2[, str_which(colnames(dat2), pattern = "Area")]
+  # area_col_names <- colnames(area_col)
+  # 
+  # dat2_tr <- dat2_tr %>%
+  #   mutate(RP1.Transition.Ratio = dat2[dat2$RP1.Peak.Rank == 1, area_col_names[1]] / 
+  #            dat2[dat2$RP1.Peak.Rank == 2, area_col_names[1]])
+  # dat2_tr <- dat2_tr %>%
+  #   mutate(RP2.Transition.Ratio = dat2[dat2$RP2.Peak.Rank == 1, area_col_names[2]] / 
+  #            dat2[dat2$RP2.Peak.Rank == 2, area_col_names[2]])
+  # dat2_tr <- dat2_tr %>%
+  #   mutate(RP3.Transition.Ratio = dat2[dat2$RP3.Peak.Rank == 1, area_col_names[3]] / 
+  #            dat2[dat2$RP3.Peak.Rank == 2, area_col_names[3]])
+  # dat2_tr <- dat2_tr %>%
+  #   mutate(RP4.Transition.Ratio = dat2[dat2$RP4.Peak.Rank == 1, area_col_names[4]] / 
+  #            dat2[dat2$RP4.Peak.Rank == 2, area_col_names[4]])
+  # dat2_tr <- dat2_tr %>%
+  #   mutate(RP5.Transition.Ratio = dat2[dat2$RP5.Peak.Rank == 1, area_col_names[5]] / 
+  #            dat2[dat2$RP5.Peak.Rank == 2, area_col_names[5]])
+  # 
+  # ################################################################
+  # 
+  # area_col <- dat3[, str_which(colnames(dat3), pattern = "Area")]
+  # area_col_names <- colnames(area_col)
+  # 
+  # dat3_tr <- dat3_tr %>%
+  #   mutate(RP1.Transition.Ratio = dat3[dat3$RP1.Peak.Rank == 1, area_col_names[1]] / 
+  #            dat3[dat3$RP1.Peak.Rank == 2, area_col_names[1]])
+  # dat3_tr <- dat3_tr %>%
+  #   mutate(RP2.Transition.Ratio = dat3[dat3$RP2.Peak.Rank == 1, area_col_names[2]] / 
+  #            dat3[dat3$RP2.Peak.Rank == 2, area_col_names[2]])
+  # dat3_tr <- dat3_tr %>%
+  #   mutate(RP3.Transition.Ratio = dat3[dat3$RP3.Peak.Rank == 1, area_col_names[3]] / 
+  #            dat3[dat3$RP3.Peak.Rank == 2, area_col_names[3]])
+  # dat3_tr <- dat3_tr %>%
+  #   mutate(RP4.Transition.Ratio = dat3[dat3$RP4.Peak.Rank == 1, area_col_names[4]] / 
+  #            dat3[dat3$RP4.Peak.Rank == 2, area_col_names[4]])
+  # dat3_tr <- dat3_tr %>%
+  #   mutate(RP5.Transition.Ratio = dat3[dat3$RP5.Peak.Rank == 1, area_col_names[5]] / 
+  #            dat3[dat3$RP5.Peak.Rank == 2, area_col_names[5]])
+  # 
+  # ################################################################
+  # 
+  # dat1_tr <- dat1_tr %>%
+  #   mutate(Average.Transition.Ratio = apply(m <- (dat1_tr[, c("RP1.Transition.Ratio", "RP2.Transition.Ratio", 
+  #                                                             "RP3.Transition.Ratio", "RP4.Transition.Ratio", "RP5.Transition.Ratio")]), 1, mean, na.rm = T))
+  # dat2_tr <- dat2_tr %>%
+  #   mutate(Average.Transition.Ratio = apply(m <- (dat2_tr[, c("RP1.Transition.Ratio", "RP2.Transition.Ratio", 
+  #                                                             "RP3.Transition.Ratio", "RP4.Transition.Ratio", "RP5.Transition.Ratio")]), 1, mean, na.rm = T))
+  # dat3_tr <- dat3_tr %>%
+  #   mutate(Average.Transition.Ratio = apply(m <- (dat3_tr[, c("RP1.Transition.Ratio", "RP2.Transition.Ratio", 
+  #                                                             "RP3.Transition.Ratio", "RP4.Transition.Ratio", "RP5.Transition.Ratio")]), 1, mean, na.rm = T))
+  # 
+  # 
+  # dat1_dat2_pep <- intersect(dat1_tr$Modified.Sequence, dat2_tr$Modified.Sequence)
+  # 
+  # dat1_dat3_pep <- intersect(dat1_tr$Modified.Sequence, dat3_tr$Modified.Sequence)
+  # 
+  # dat2_dat3_pep <- intersect(dat2_tr$Modified.Sequence, dat3_tr$Modified.Sequence)
+  # 
+  # 
+  # dat1_dat2_dat3 <- intersect(intersect(dat1_tr$Modified.Sequence, dat2_tr$Modified.Sequence), dat3_tr$Modified.Sequence)
+  # 
+  # dat1_dat2_tr <- dat1_tr[dat1_tr$Modified.Sequence %in% dat1_dat2_pep, c("Protein.Name", "Modified.Sequence", "Average.Transition.Ratio")]
+  # dat2_dat1_tr <- dat2_tr[dat2_tr$Modified.Sequence %in% dat1_dat2_pep, c("Protein.Name", "Modified.Sequence", "Average.Transition.Ratio")]
+  # 
+  # dat1_dat3_tr <- dat1_tr[dat1_tr$Modified.Sequence %in% dat1_dat3_pep, c("Protein.Name", "Modified.Sequence", "Average.Transition.Ratio")]
+  # dat3_dat1_tr <- dat3_tr[dat3_tr$Modified.Sequence %in% dat1_dat3_pep, c("Protein.Name", "Modified.Sequence", "Average.Transition.Ratio")]
+  # 
+  # dat2_dat3_tr <- dat2_tr[dat2_tr$Modified.Sequence %in% dat2_dat3_pep, c("Protein.Name", "Modified.Sequence", "Average.Transition.Ratio")]
+  # dat3_dat2_tr <- dat3_tr[dat3_tr$Modified.Sequence %in% dat2_dat3_pep, c("Protein.Name", "Modified.Sequence", "Average.Transition.Ratio")]
+  # 
+  # 
+  # 
+  # dat11_dat22_tr <- merge(dat1_dat2_tr, dat2_dat1_tr, by = "Modified.Sequence")
+  # dat22_dat33_tr <- merge(dat2_dat3_tr, dat3_dat2_tr, by = "Modified.Sequence")
+  # dat11_dat33_tr <- merge(dat1_dat3_tr, dat3_dat1_tr, by = "Modified.Sequence")
+  # 
+  # 
+  # dat11_dat22_tr <- dat11_dat22_tr %>%
+  #   filter(Average.Transition.Ratio.x <= 20) %>%
+  #   filter(Average.Transition.Ratio.y <= 20)
+  # dat22_dat33_tr <- dat22_dat33_tr %>%
+  #   filter(Average.Transition.Ratio.x <= 20) %>%
+  #   filter(Average.Transition.Ratio.y <= 20)
+  # dat11_dat33_tr <- dat11_dat33_tr %>%
+  #   filter(Average.Transition.Ratio.x <= 20) %>%
+  #   filter(Average.Transition.Ratio.y <= 20)
+  # 
+  # 
   #         ##### Some plot
+  # tr1 <- ggplot(dat11_dat22_tr, aes(x = Average.Transition.Ratio.x, y = Average.Transition.Ratio.y)) +
+  #   geom_jitter(alpha = 0.7, col = "black", fill = "black", size  = 1.5, shape = 15) +
+  #   annotate("text", x = 6, y = 18, 
+  #            label = deparse(bquote(italic(R)^2 ==. (format(
+  #              cor(dat11_dat22_tr$Average.Transition.Ratio.x, dat11_dat22_tr$Average.Transition.Ratio.y), digits = 2)))),
+  #            color = "black", parse = T) +
+  #   stat_smooth(method = "auto", col = "red", se = T, size = 1)+
+  #   scale_y_continuous("Sheep", breaks=seq(0, 20, 3)) +
+  #   scale_x_continuous("Cattle", breaks=seq(0, 20, 3))+
+  #   theme(panel.background = element_rect(fill = "white",
+  #                                         colour = "white",
+  #                                         size = 0.5, linetype = "solid"),
+  #         panel.border = element_blank(), axis.line = element_line(linetype = "solid"),
+  #         axis.text = element_text(color="black",size = 13, face = "bold"),
+  #         axis.title.x = element_text(color="black", size=12, face="bold"),
+  #         axis.title.y = element_text(color="black", size=12, face="bold") 
+  #   )
+  # 
+  # tr2 <- ggplot(dat11_dat33_tr, aes(x = Average.Transition.Ratio.x, y = Average.Transition.Ratio.y)) +
+  #   geom_jitter(alpha = 0.7, col = "black", fill = "black", size  = 1.5, shape = 15) +
+  #   annotate("text", x = 6, y = 13.5, 
+  #            label = deparse(bquote(italic(R)^2 ==. (format(
+  #              cor(dat11_dat33_tr$Average.Transition.Ratio.x, dat11_dat33_tr$Average.Transition.Ratio.y), digits = 2)))),
+  #            color = "black", parse = T) +
+  #   stat_smooth(method = "auto", col = "red", se = T, size = 1)+
+  #   scale_y_continuous("Giraffe", breaks=seq(0, 15, 3)) +
+  #   scale_x_continuous("Cattle", breaks=seq(0, 21, 3))+
+  #   theme(panel.background = element_rect(fill = "white",
+  #                                         colour = "white",
+  #                                         size = 0.5, linetype = "solid"),
+  #         panel.border = element_blank(), axis.line = element_line(linetype = "solid"),
+  #         axis.text = element_text(color="black",size = 13, face = "bold"),
+  #         axis.title.x = element_text(color="black", size=12, face="bold"),
+  #         axis.title.y = element_text(color="black", size=12, face="bold")
+  #   )
+  # 
+  # tr3 <- ggplot(dat11_dat33_tr, aes(x = Average.Transition.Ratio.x, y = Average.Transition.Ratio.y)) +
+  #   geom_jitter(alpha = 0.7, col = "black", fill = "black", size  = 1.5, shape = 15) +
+  #   annotate("text", x = 6, y = 13.5, 
+  #            label = deparse(bquote(italic(R)^2 ==. (format(
+  #              cor(dat11_dat33_tr$Average.Transition.Ratio.x, dat11_dat33_tr$Average.Transition.Ratio.y), digits = 2)))),
+  #            color = "black", parse = T) +
+  #   stat_smooth(method = "auto", col = "red", se = T, size = 1)+
+  #   scale_y_continuous("Sheep", breaks=seq(0, 20, 3)) +
+  #   scale_x_continuous("Giraffe", breaks=seq(0, 20, 3))+
+  #   theme(panel.background = element_rect(fill = "white",
+  #                                         colour = "white",
+  #                                         size = 0.5, linetype = "solid"),
+  #         panel.border = element_blank(), axis.line = element_line(linetype = "solid"),
+  #         axis.text = element_text(color="black",size = 13, face = "bold"),
+  #         axis.title.x = element_text(color="black", size=12, face="bold"),
+  #         axis.title.y = element_text(color="black", size=12, face="bold") 
+  #   )
+  # 
+  # tr <- ggarrange(tr1, tr2, tr3, ncol = 3, nrow = 1, labels = "AUTO", hjust = -1.2, vjust = 1.7)
   #         
-  #         pnum <- ggarrange(p1, p2, p3, ncol = 3)
-  #         pnum
-  #         
-  #         print(pnum)
-  #         
+  # tr
+  #         print(tr)
+  # 
   #         incProgress(0.1, detail = "plotting")
   #         Sys.sleep(0.25)
   #       }
   #     })
   # })
-  
-  
+  # 
+  # 
   # ///////////////////////////////////////////////////////////////////////////////////
+  
+  
+  
+  ##### Multi CV Plots
+  
+  output$multiCVPlot <- renderPlot({
+    if(!is.null(reportread1()) & !is.null(reportread2()) & !is.null(reportread3()))
+      withProgress(message = "Generating Plot", style = "notification", value = 0.1, {
+        for (i in 1:1) {
+          dat1 <- reportread1()
+          dat2 <- reportread2()
+          dat3 <- reportread3()
+          
+          dat1 <- dat1[!duplicated(dat1$Modified.Sequence),]
+          dat1 <- mutate(dat1, "CV.Normalized" = as.character(dat1$Cv.Total.Area))
+          dat1$CV.Normalized <- str_replace(dat1$CV.Normalized, pattern = "%", replacement = "")
+          dat1$CV.Normalized <- round(as.numeric(dat1$CV.Normalized))
+          
+          dat2 <- dat2[!duplicated(dat2$Modified.Sequence),]
+          dat2 <- mutate(dat2, "CV.Normalized" = as.character(dat2$Cv.Total.Area))
+          dat2$CV.Normalized <- str_replace(dat2$CV.Normalized, pattern = "%", replacement = "")
+          dat2$CV.Normalized <- round(as.numeric(dat2$CV.Normalized))
+          
+          dat3 <- dat3[!duplicated(dat3$Modified.Sequence),]
+          dat3 <- mutate(dat3, "CV.Normalized" = as.character(dat3$Cv.Total.Area))
+          dat3$CV.Normalized <- str_replace(dat3$CV.Normalized, pattern = "%", replacement = "")
+          dat3$CV.Normalized <- round(as.numeric(dat3$CV.Normalized))
+          
+          
+          dat1 <- mutate(dat1, "Data" = input$dataset1)
+          dat2 <- mutate(dat2, "Data" = input$dataset2)
+          dat3 <- mutate(dat3, "Data" = input$dataset3)
+          
+          
+          dat1 <- dat1[!duplicated(dat1$Modified.Sequence),]
+          dat2 <- dat2[!duplicated(dat2$Modified.Sequence),]
+          dat3 <- dat3[!duplicated(dat3$Modified.Sequence),]
+          
+          pv_dat <- rbind(dat1, dat2)
+          pv_dat <- rbind(pv_dat, dat3)
+          
+          pv_dat <- pv_dat %>%
+            filter(CV.Normalized <= 100)
+          
+          ## some plot
+          getPalette = colorRampPalette(brewer.pal(9, "Dark2"))
+          
+          dp <- ggplot(data = pv_dat, aes(y = CV.Normalized, x = Data, fill = Data)) +
+            geom_violin(alpha = 0.9, color = "black",
+                        trim = F)+
+            # scale_fill_manual(values = c("#ff4945")) +
+            scale_fill_brewer(palette="Dark2") +
+            geom_boxplot(width = 0.1, fill = "white") +
+            theme(legend.position = "none") +
+            labs(x = paste(input$inputreport$name), y = "Normalized CVs (%)") +
+            theme(axis.title.x = element_text(color="black", size=16, face="bold"),
+                  axis.title.y = element_text(color="black", size=16, face="bold"), 
+                  panel.background = element_rect(fill = "white",
+                                                  colour = "white",
+                                                  size = 0.5, linetype = "solid"),
+                  panel.border = element_blank(), axis.line = element_line(linetype = "solid"), 
+                  axis.text = element_text(color="black",size = 14),
+                  aspect.ratio = 1
+            )
+          
+          print(dp)
+          
+          incProgress(0.1, detail = "plotting")
+          Sys.sleep(0.25)
+        }
+      })
+  })
+  
+  
   
   #### Protein Intensities Correlation
   
@@ -3099,11 +3347,11 @@ shinyServer(function(input, output, session) {
           # 
           # 
           dat1 <- dat1 %>%
-            mutate(Average.Intensity.dat1 = apply(m <- (dat1[, str_which(colnames(dat1), pattern = "Normalized.Area.y")]), 1, mean))
+            mutate(Average.Intensity.dat1 = apply(m <- (dat1[, str_which(colnames(dat1), pattern = "Normalized.Area.y")]), 1, mean, na.rm = TRUE))
           dat2 <- dat2 %>%
-            mutate(Average.Intensity.dat2 = apply(m <- (dat2[, str_which(colnames(dat2), pattern = "Normalized.Area.y")]), 1, mean))
+            mutate(Average.Intensity.dat2 = apply(m <- (dat2[, str_which(colnames(dat2), pattern = "Normalized.Area.y")]), 1, mean, na.rm = TRUE))
           dat3 <- dat3 %>%
-            mutate(Average.Intensity.dat3 = apply(m <- (dat3[, str_which(colnames(dat3), pattern = "Normalized.Area.y")]), 1, mean))
+            mutate(Average.Intensity.dat3 = apply(m <- (dat3[, str_which(colnames(dat3), pattern = "Normalized.Area.y")]), 1, mean, na.rm = TRUE))
 
           # 
           dat1_dat2 <- merge(dat1, dat2, by = 1)
@@ -3122,7 +3370,7 @@ shinyServer(function(input, output, session) {
           # 
           dat1_dat2_dat3_max <- as.matrix(dat1_dat2_dat3_t)
 
-          annot_names <- data.frame("Dataset" = c(input$inputreport1$name, input$inputreport2$name, input$inputreport3$name))
+          annot_names <- data.frame("Dataset" = c(input$dataset1, input$dataset2, input$dataset3))
           # 
           # # annot_names <- read.delim("E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/my_df_to_use.csv", na.strings = T, sep = ",")
           rownames(annot_names) <- c("Average.Intensity.dat1", "Average.Intensity.dat2", "Average.Intensity.dat3")
@@ -3139,10 +3387,10 @@ shinyServer(function(input, output, session) {
           int_plot <- pheatmap(dat1_dat2_dat3_max, cluster_cols = T, cluster_rows = T,
                    clustering_distance_rows = "correlation", clustering_distance_cols = "correlation",
                    annotation_col = annot_names,
-                   cellheight = 7,
-                   cellwidth =30,
-                   fontsize_row = 8, fontsize_col = 8, border_color = NA,
-                   fontsize = 10,
+                   cellheight = 12,
+                   cellwidth =40,
+                   fontsize_row = 10, fontsize_col = 10, border_color = NA,
+                   fontsize = 17,
                    treeheight_row =20,
                    show_colnames = F, color = col,
                    # annotation_colors = ann_color[1],
@@ -3154,13 +3402,13 @@ shinyServer(function(input, output, session) {
                    # scale = "row"
                    # ,legend_labels = c("-3", "-2", "-1", "0", "1", "-2", "-3", "Intensity")
                    # ,filename = "E:/QUT-Pawel-Data/DIA_Extractions_27Nov18/Extractions_Figures2/protein_intensity2.tiff"
-                   , width = 10, height = 10
+                   # , width = 10, height = 10
                    # , main = "Heatmap of protein intensities (log)"
                    , res = 300
           )
 
-          # ppp <- grid.arrange(grobs = int_plot[[4]])
-          print(int_plot[[4]])
+          ppp <- grid.arrange(grobs = int_plot[[4]])
+          print(ppp)
 
           incProgress(0.1, detail = "plotting")
           Sys.sleep(0.25)
@@ -3690,7 +3938,7 @@ shinyServer(function(input, output, session) {
   
   ###################################################################
   
-  ### Libraries Summaries (three)
+  ### Libraries Summaries (four)
   observeEvent(input$fmultiapply, {
     output$multiseedlibsummary <- renderText({
       seeddata <- fmseedlibdata()

@@ -11,7 +11,7 @@
 
 packages <- c("shiny", "ggplot2", "dplyr", "stringr", "readr", "DT", "tools",
               "shinydashboard", "utils", "e1071", "shinyjs", "shinythemes", "shinyBS", "pryr",
-              "graphics", "ggthemes", "grid", "ggpubr", "plyr", "VennDiagram", "tidyr", "dplyr")
+              "graphics", "ggthemes", "grid", "ggpubr", "plyr", "VennDiagram", "tidyr", "dplyr", "htmltools", "pheatmap")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))
 }
@@ -33,6 +33,7 @@ library(shinyBS)
 library(tidyr)
 library(plyr)
 library(dplyr)
+library(htmltools)
 
 # Define UI for application 
 shinyUI(fluidPage(
@@ -138,36 +139,71 @@ shinyUI(fluidPage(
                                                    newtab = TRUE,
                                                    selected = FALSE,
                                                    startExpanded = FALSE),
-                                          # menuItem(text = "DIA Report Analysis and Visualization",
-                                          #          icon = icon("folder-open", lib = "glyphicon", "fa-1x"), 
-                                          #          #badgeLabel = 4, 
-                                          #          #badgeColor = "green",
-                                          #          # tabName = "dia_visualization",
-                                          #          #href = "links",
-                                          #          # newtab = TRUE,
-                                          #          selected = FALSE,
-                                          #          startExpanded = TRUE,
-                                          #          menuItem(text = "Reading and Processing",
-                                          #                   icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
-                                          #                   tabName = "dia_visualization",
-                                          #                   newtab = TRUE,
-                                          #                   selected = FALSE),
-                                          #          menuItem(text = "Quality Check Plots",
-                                          #                   icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
-                                          #                   tabName = "quality_plots",
-                                          #                   newtab = TRUE,
-                                          #                   selected = FALSE),
-                                          #          menuItem(text = "Proteins Intensity",
-                                          #                   icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
-                                          #                   tabName = "prot_intensities",
-                                          #                   newtab = TRUE,
-                                          #                   selected = FALSE),
-                                          #          menuItem(text = "Multiple Reports Comparison",
-                                          #                   icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
-                                          #                   tabName = "multi_report",
-                                          #                   newtab = TRUE,
-                                          #                   selected = FALSE)
-                                          # ),
+                                          menuItem(text = "MultiLibraries Wizard",
+                                                   icon = icon("industry", "fa-1x"),
+                                                   selected = FALSE,
+                                                   startExpanded = TRUE,
+                                                   menuItem(text = "Libraries Input and Comparison",
+                                                            icon = icon("list", lib = "glyphicon", "fa-1x"), 
+                                                            #badgeLabel = 2, 
+                                                            #badgeColor = "aqua",
+                                                            tabName = "multidatainput",
+                                                            #href = "links",
+                                                            newtab = TRUE,
+                                                            selected = FALSE
+                                                            # startExpanded = FALSE
+                                                   ),
+                                                   menuItem(text = "Building Combined Libraries",
+                                                            icon = icon("asterisk", lib = "glyphicon", "fa-1x"), 
+                                                            #badgeLabel = "new", 
+                                                            #badgeColor = "green",
+                                                            tabName = "multilibrarycombination",
+                                                            #href = "links",
+                                                            newtab = TRUE,
+                                                            selected = FALSE
+                                                            # startExpanded = FALSE
+                                                   ),
+                                                   menuItem(text = "MultiLibraries Visualization",
+                                                            icon = icon("picture", lib = "glyphicon", "fa-1x"), 
+                                                            #badgeLabel = 4, 
+                                                            #badgeColor = "green",
+                                                            tabName = "multivisualization",
+                                                            #href = "links",
+                                                            newtab = TRUE,
+                                                            selected = FALSE,
+                                                            startExpanded = FALSE)
+                                          ),
+                                          menuItem(text = "DIA Report Analysis and Visualization",
+                                                   icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
+                                                   #badgeLabel = 4,
+                                                   #badgeColor = "green",
+                                                   # tabName = "dia_visualization",
+                                                   #href = "links",
+                                                   # newtab = TRUE,
+                                                   selected = FALSE,
+                                                   startExpanded = TRUE,
+                                                   menuItem(text = "Reading and Processing",
+                                                            icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
+                                                            tabName = "dia_visualization",
+                                                            newtab = TRUE,
+                                                            selected = FALSE),
+                                                   menuItem(text = "Quality Check Plots",
+                                                            icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
+                                                            tabName = "quality_plots",
+                                                            newtab = TRUE,
+                                                            selected = FALSE),
+                                                   menuItem(text = "Proteins Intensity",
+                                                            icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
+                                                            tabName = "prot_intensities",
+                                                            newtab = TRUE,
+                                                            selected = FALSE)
+                                                   # ,
+                                                   # menuItem(text = "Multiple Reports Comparison",
+                                                   #          icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
+                                                   #          tabName = "multi_report",
+                                                   #          newtab = TRUE,
+                                                   #          selected = FALSE)
+                                          ),
                                           menuItem(text = "Help",
                                                    icon = icon("edit", lib = "glyphicon", "fa-1x"), 
                                                    #badgeLabel = 4, 
@@ -641,7 +677,7 @@ shinyUI(fluidPage(
                                                                         width = '100%'),
                                                             sliderInput(inputId = "productcharge",
                                                                         label = "Max. Product Charges",
-                                                                        min = 1,
+                                                                        min = 0,
                                                                         max = 10,
                                                                         value = 3,
                                                                         step = 1,
@@ -650,7 +686,7 @@ shinyUI(fluidPage(
                                                                         width = '100%'),
                                                             sliderInput(inputId = "precursorcharge",
                                                                         label = "Max. Precursor Charges",
-                                                                        min = 1,
+                                                                        min = 0,
                                                                         max = 10,
                                                                         value = 3,
                                                                         step = 1,
@@ -659,7 +695,7 @@ shinyUI(fluidPage(
                                                                         width = '100%'),
                                                             sliderInput(inputId = "fragmentnumber",
                                                                         label = "Min. Fragment Series Number (e.g. y3, b7)",
-                                                                        min = 1,
+                                                                        min = 0,
                                                                         max = 10,
                                                                         value = 3,
                                                                         step = 1,
@@ -1411,597 +1447,1019 @@ shinyUI(fluidPage(
                          #                  "))
                          # )
                                          ),
-                 # tabItem(tabName = "dia_visualization",
-                 #         fluidRow(column(4, h3(tags$i("DIA Report Analysis and Visualization"))),
-                 #                  column(2, offset = 2,
-                 #                         strong(h3(tags$a(icon("home", lib = "glyphicon"),"Home", onclick = "openTab('introduction')"))),
-                 #                         tags$script(HTML("
-                 #                                          var openTab = function(tabName){
-                 #                                          $('a', $('.sidebar')).each(function(){
-                 #                                          if(this.getAttribute('data-value') == tabName) {
-                 #                                          this.click()
-                 #                                          };
-                 #                                          });
-                 #                                          }
-                 #                                          "))
-                 #                         ),
-                 #                  column(2, strong(h3(tags$a(icon("edit", lib = "glyphicon"), "Help", onclick = "openTab('help')"))),
-                 #                         tags$script(HTML("
-                 #                                          var openTab = function(tabName){
-                 #                                          $('a', $('.sidebar')).each(function(){
-                 #                                          if(this.getAttribute('data-value') == tabName) {
-                 #                                          this.click()
-                 #                                          };
-                 #                                          });
-                 #                                          }
-                 #                                          "))
-                 #                         )
-                 #                         ),
-                 #         sidebarLayout(
-                 #           sidebarPanel(
-                 #             wellPanel(style = "background-color: #ffffff;",
-                 #                       box(selectInput(inputId = "diaReport",
-                 #                                       label = "Report File",
-                 #                                       choices = c("Skyline" = "skylineReport",
-                 #                                                   "PeakView" = "peakviewReport"),
-                 #                                       selected = NULL,
-                 #                                       multiple = F,
-                 #                                       selectize = T,
-                 #                                       width = '100%'),
-                 #                           fileInput(inputId = "inputreport",
-                 #                                     label = "Choose .txt / .csv / .tsv file",
-                 #                                     multiple = F,
-                 #                                     buttonLabel = "Choose File",
-                 #                                     placeholder = "Report...",
-                 #                                     accept = c("text/csv/tsv",
-                 #                                                "text/comma-seprated-values, text/plain",
-                 #                                                ".csv"),
-                 #                                     width = '100%'),
-                 #                           uiOutput(outputId = "reportapply",
-                 #                                    width = '100%'),
-                 #                           tags$head(
-                 #                             tags$style(HTML('#report{color: #6d7983;border-color:#eaa932}'))
-                 #                           ),
-                 #                           actionButton(inputId = "report",
-                 #                                        label = "Apply",
-                 #                                        icon = icon("toggle-off")),
-                 #                           title = "Reading DIA Report File", solidHeader = T, status = "warning", width = 14
-                 #                       )
-                 #             ),
-                 #             wellPanel(style = "background-color: #ffffff;",
-                 #                       box(checkboxInput(inputId = "refineReport",
-                 #                                         label = "Process Report File",
-                 #                                         value = TRUE,
-                 #                                         width = '100%'),
-                 #                           conditionalPanel(condition = "input.refineReport == true",
-                 #                                            textInput(inputId = "refineText",
-                 #                                                      label = "Enter a specific identifier to remove standard or spiked peptides/proteins",
-                 #                                                      value = "",
-                 #                                                      width = '100%',
-                 #                                                      placeholder = "e.g. sp| , iRT "),
-                 #                                            # numericInput(inputId = "allRep",
-                 #                                            #           label = "Enter the number of replicates",
-                 #                                            #           value = 3,
-                 #                                            #           width = '100%',
-                 #                                            #           min = 1,
-                 #                                            #           max = 20,
-                 #                                            #           step = 1),
-                 #                                            # numericInput(inputId = "bioRep",
-                 #                                            #           label = "Enter the number of biological replicates",
-                 #                                            #           value = 2,
-                 #                                            #           width = '100%',
-                 #                                            #           min = 1,
-                 #                                            #           max = 20,
-                 #                                            #           step = 1),
-                 #                                            checkboxInput(inputId = "averagedotp",
-                 #                                                          label = "Average DotP values for peptides among Replicates",
-                 #                                                          value = F,
-                 #                                                          width = '100%'),
-                 #                                            checkboxInput(inputId = "averagemasserr",
-                 #                                                          label = "Average Mass Error values for peptides among Replicates",
-                 #                                                          value = F,
-                 #                                                          width = '100%'),
-                 #                                            checkboxInput(inputId = "averagert",
-                 #                                                          label = "Average Retention Time values for peptides among Replicates",
-                 #                                                          value = F,
-                 #                                                          width = '100%'),
-                 #                                            checkboxInput(inputId = "averageqval",
-                 #                                                          label = "Average Q-values for peptides among Replicates",
-                 #                                                          value = F,
-                 #                                                          width = '100%'),
-                 #                                            tags$head(
-                 #                                              tags$style(HTML('#processFile{color: #6d7983;border-color:#eaa932}'))
-                 #                                            ),
-                 #                                            uiOutput(outputId = "process.rep",
-                 #                                                     width = '100%'),
-                 #                                            actionButton(inputId = "processFile",
-                 #                                                         label = "Apply")
-                 #                           ),
-                 #                           bsTooltip(id = "refineReport", title = "Refine report file by removing standard or spiked peptides/proteins",
-                 #                                     placement = "right", trigger = "hover"),
-                 #                           title = "Process Report File", solidHeader = TRUE, status = "warning", width = 14
-                 #                       )
-                 #             ),
-                 #             wellPanel(style = "background-color: #ffffff;",
-                 #                       box(tags$head(
-                 #                         tags$style(HTML('#downloadreport{color: #6d7983;border-color:#008000}'))
-                 #                       ),
-                 #                       uiOutput(outputId = "downloadrep"),
-                 #                       downloadButton(outputId = "downloadreport", label = "Download"),
-                 #                       title = "Downloading Report File", solidHeader = TRUE, status = "success", width = 14))
-                 #           ),
-                 #           mainPanel(
-                 #             shinyjs::hidden(wellPanel(id = "reportreadpanel",
-                 #                                       tabPanel("Report File",
-                 #                                                wellPanel(h5("Summary"),
-                 #                                                          verbatimTextOutput(outputId = "reportSummary", placeholder = FALSE),
-                 #                                                          style = "background-color: #ffffff;"),
-                 #                                                br(),
-                 #                                                DT::dataTableOutput("reportContents"),
-                 #                                                br(), br(), br()
-                 #                                       )
-                 #             )
-                 #             )
-                 #           ),
-                 #           fluid = TRUE
-                 #         )
-                 #                         ),
-                 # 
-                 # tabItem(tabName = "quality_plots",
-                 #         fluidRow(column(4, h3(tags$i("Quality Check Plots"))),
-                 #                  column(2, offset = 2,
-                 #                         strong(h3(tags$a(icon("home", lib = "glyphicon"),"Home", onclick = "openTab('introduction')"))),
-                 #                         tags$script(HTML("
-                 #                                          var openTab = function(tabName){
-                 #                                          $('a', $('.sidebar')).each(function(){
-                 #                                          if(this.getAttribute('data-value') == tabName) {
-                 #                                          this.click()
-                 #                                          };
-                 #                                          });
-                 #                                          }
-                 #                                          "))
-                 #                         ),
-                 #                  column(2, strong(h3(tags$a(icon("edit", lib = "glyphicon"), "Help", onclick = "openTab('help')"))),
-                 #                         tags$script(HTML("
-                 #                                          var openTab = function(tabName){
-                 #                                          $('a', $('.sidebar')).each(function(){
-                 #                                          if(this.getAttribute('data-value') == tabName) {
-                 #                                          this.click()
-                 #                                          };
-                 #                                          });
-                 #                                          }
-                 #                                          "))
-                 #                         )
-                 #                         ),
-                 #         br(), br(),
-                 #         wellPanel(style = "background-color: #ffffff;",
-                 #                   fluidRow(column(4,
-                 #                                   box(uiOutput(outputId = "reportfilename", inline = TRUE, container = div),
-                 #                                       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                            column(4,
-                 #                                   box(uiOutput(outputId = "reps", inline = TRUE, container = div),
-                 #                                       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                            
-                 #                   )
-                 #         ),
-                 #         navbarPage(title = "Plots",
-                 #                    
-                 #                    tabPanel(title = "Dot Product", value = "dotP",
-                 #                             # fluidRow(column(4,
-                 #                             #   box(uiOutput(outputId = "dotpreport", inline = TRUE, container = div),
-                 #                             #       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                             #   column(4,
-                 #                             #          box(uiOutput(outputId = "reps", inline = TRUE, container = div),
-                 #                             #       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                             # 
-                 #                             #   ),
-                 #                             fluidRow(
-                 #                               wellPanel(style = "background-color: #ffffff;",
-                 #                                 h4(strong("Dot Product Values Among Replicates")),
-                 #                                 plotOutput("dotpPlot", click = "plot_click", width = '100%')
-                 #                               )
-                 #                             )
-                 #                    ),
-                 #                    tabPanel(title = "Intensity Distribution", value = "intensity",
-                 #                             # fluidRow(column(4,
-                 #                             #   box(uiOutput(outputId = "dotpreport", inline = TRUE, container = div),
-                 #                             #       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                             #   column(4,
-                 #                             #          box(uiOutput(outputId = "reps", inline = TRUE, container = div),
-                 #                             #       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                             # 
-                 #                             #   ),
-                 #                             fluidRow(
-                 #                               wellPanel(style = "background-color: #ffffff;",
-                 #                                 h4(strong("Peptide Intensity Distribution Among Replicates")),
-                 #                                 plotOutput("intensityPlot", click = "plot_click", width = '100%')
-                 #                               )
-                 #                             )
-                 #                    ),
-                 #                    tabPanel(title = "Mass Error", value = "massE",
-                 #                             # fluidRow(column(4,
-                 #                             #                 box(uiOutput(outputId = "massEreport", inline = TRUE, container = div),
-                 #                             #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                             #          column(4,
-                 #                             #                 box(uiOutput(outputId = "mreps", inline = TRUE, container = div),
-                 #                             #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                             #          
-                 #                             # ),
-                 #                             fluidRow(
-                 #                               wellPanel(style = "background-color: #ffffff;",
-                 #                                 h4(strong("Mass Error Values Among Replicates")),
-                 #                                 plotOutput("massEPlot", click = "plot_click", width = '100%')
-                 #                               )
-                 #                             )
-                 #                    ),
-                 #                    tabPanel(title = "Coefficent of Variation (CV)", value = "cV", 
-                 #                             # fluidRow(column(4,
-                 #                             #                 box(uiOutput(outputId = "cvreport", inline = TRUE, container = div),
-                 #                             #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                             #          column(4,
-                 #                             #                 box(uiOutput(outputId = "cvreps", inline = TRUE, container = div),
-                 #                             #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                             #          
-                 #                             # ),
-                 #                             fluidRow(
-                 #                               wellPanel(style = "background-color: #ffffff;",
-                 #                                 h4(strong("Coefficient of Variation among Replicates")),
-                 #                                 plotOutput("cvPlot", click = "plot_click", width = '100%')
-                 #                               )
-                 #                             )
-                 #                    ),
-                 #                    tabPanel(title = "Q-Values", value = "qV",
-                 #                             # fluidRow(column(4,
-                 #                             #                 box(uiOutput(outputId = "qvalreport", inline = TRUE, container = div),
-                 #                             #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                             #          column(4,
-                 #                             #                 box(uiOutput(outputId = "qreps", inline = TRUE, container = div),
-                 #                             #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                             #          
-                 #                             # ),
-                 #                             fluidRow(
-                 #                               wellPanel(style = "background-color: #ffffff;",
-                 #                                 h4(strong("Q-Value among Replicates")),
-                 #                                 plotOutput("qvalPlot", click = "plot_click", width = '100%')
-                 #                               )
-                 #                             )
-                 #                    ),
-                 #                    tabPanel(title = "DDA-DIA RT Correlation", value = "drtCor",
-                 #                             # fluidRow(column(4,
-                 #                             #                 box(uiOutput(outputId = "rtreport", inline = TRUE, container = div),
-                 #                             #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                             #          column(4,
-                 #                             #                 box(uiOutput(outputId = "rtreps", inline = TRUE, container = div),
-                 #                             #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                             #          
-                 #                             # ),
-                 #                             fluidRow(column(9, wellPanel(style = "background-color: #ffffff;",
-                 #                                                          h5(strong("Select the library to compare the DDA and DIA retention times")),
-                 #                                                          selectInput(inputId = "report_lib_format",
-                 #                                                                      label = "Library Format",
-                 #                                                                      choices = c("PeakView" = "peakview",
-                 #                                                                                  "OpenSwath" = "openswath",
-                 #                                                                                  "Skyline" = "skyline",
-                 #                                                                                  "Spectronaut" = "spectronaut"),
-                 #                                                                      selected = NULL,
-                 #                                                                      multiple = F,
-                 #                                                                      selectize = T,
-                 #                                                                      width = '100%'),
-                 #                                                          fileInput(inputId = "report_lib",
-                 #                                                                    label = "Choose .txt / .csv / .tsv file",
-                 #                                                                    multiple = TRUE,
-                 #                                                                    buttonLabel = "Choose file",
-                 #                                                                    placeholder = "Libraries...",
-                 #                                                                    accept = c("text/csv/tsv",
-                 #                                                                               "text/comma-separated-values, text/plain",
-                 #                                                                               ".csv"),
-                 #                                                                    width = '100%')
-                 #                             )
-                 #                             ),
-                 #                             column(3, actionButton("drtplot", "Plot", width = '300px', icon = icon("refresh", lib = "glyphicon")))
-                 #                               
-                 #                               ),
-                 #                             fluidRow(
-                 #                               wellPanel(style = "background-color: #ffffff;",
-                 #                                 h4(strong("Correlation Between Library and DIA Averaged Measured Retention Times")),
-                 #                                 plotOutput("drtPlot", click = "plot_click", width = '100%')
-                 #                               )
-                 #                             )
-                 #                             )
-                 #         )
-                 #                         ),
-                 # tabItem(tabName = "prot_intensities",
-                 #         fluidRow(column(4, h3(tags$i("Quality Check Plots"))),
-                 #                  column(2, offset = 2,
-                 #                         strong(h3(tags$a(icon("home", lib = "glyphicon"),"Home", onclick = "openTab('introduction')"))),
-                 #                         tags$script(HTML("
-                 #                                          var openTab = function(tabName){
-                 #                                          $('a', $('.sidebar')).each(function(){
-                 #                                          if(this.getAttribute('data-value') == tabName) {
-                 #                                          this.click()
-                 #                                          };
-                 #                                          });
-                 #                                          }
-                 #                                          "))
-                 #                  ),
-                 #                  column(2, strong(h3(tags$a(icon("edit", lib = "glyphicon"), "Help", onclick = "openTab('help')"))),
-                 #                         tags$script(HTML("
-                 #                                          var openTab = function(tabName){
-                 #                                          $('a', $('.sidebar')).each(function(){
-                 #                                          if(this.getAttribute('data-value') == tabName) {
-                 #                                          this.click()
-                 #                                          };
-                 #                                          });
-                 #                                          }
-                 #                                          "))
-                 #                  )
-                 #         ),
-                 #         # ,
-                 #         # br(), br(),
-                 #         # wellPanel(style = "background-color: #ffffff;",
-                 #         #           fluidRow(column(4,
-                 #         #                           box(uiOutput(outputId = "reportfilename", inline = TRUE, container = div),
-                 #         #                               title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #         #                    column(4,
-                 #         #                           box(uiOutput(outputId = "reps", inline = TRUE, container = div),
-                 #         #                               title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #         #                    
-                 #         #           )
-                 #         # )
-                 #         # ,
-                 #         navbarPage(title = "Protein Intensities",
-                 #                    tabPanel(title = "Table", value = "int_table",
-                 #                             fluidRow(
-                 #                               wellPanel(style = "background-color: #ffffff;",
-                 #                                 h5(strong("Protein Intensities calculated by summing the normalized area values of corresponding peptides")),
-                 #                                 DT::dataTableOutput("intensity_table")
-                 #                               )
-                 #                             )),
-                 #                    tabPanel(title = "Plot", value = "int_plot",
-                 #                             fluidRow(
-                 #                               wellPanel(style = "background-color: #ffffff;",
-                 #                                 h5(strong("Protein Intensities calculated by summing the normalized area values of corresponding peptides")),
-                 #                                 plotOutput("intensity_plot", click = "plot_click", width = '100%')
-                 #                             )
-                 #                             )
-                 #                             )
-                 #                    )
-                 # 
-                 #         ),
-                 #  tabItem(tabName = "multi_report",
-                 #          fluidRow(column(4, h3(tags$i("Multiple Reports Comparison"))),
-                 #                   column(2, offset = 2,
-                 #                          strong(h3(tags$a(icon("home", lib = "glyphicon"),"Home", onclick = "openTab('introduction')"))),
-                 #                          tags$script(HTML("
-                 #                                          var openTab = function(tabName){
-                 #                                          $('a', $('.sidebar')).each(function(){
-                 #                                          if(this.getAttribute('data-value') == tabName) {
-                 #                                          this.click()
-                 #                                          };
-                 #                                          });
-                 #                                          }
-                 #                                          "))
-                 #                   ),
-                 #                   column(2, strong(h3(tags$a(icon("edit", lib = "glyphicon"), "Help", onclick = "openTab('help')"))),
-                 #                          tags$script(HTML("
-                 #                                          var openTab = function(tabName){
-                 #                                          $('a', $('.sidebar')).each(function(){
-                 #                                          if(this.getAttribute('data-value') == tabName) {
-                 #                                          this.click()
-                 #                                          };
-                 #                                          });
-                 #                                          }
-                 #                                          "))
-                 #                   )
-                 #          )
-                 # ,
-                 #         wellPanel(style = "background-color: #ffffff;",
-                 #                   fluidRow(column(9,
-                 #                   box(
-                 #                     column(4, selectInput(inputId = "multidiaReport1",
-                 #                                   label = "Report File 1",
-                 #                                   choices = c("Skyline" = "skylineReport",
-                 #                                               "PeakView" = "peakviewReport"),
-                 #                                   selected = NULL,
-                 #                                   multiple = F,
-                 #                                   selectize = T,
-                 #                                   width = '100%'),
-                 #                       fileInput(inputId = "inputreport1",
-                 #                                 label = "Choose .txt / .csv / .tsv file",
-                 #                                 multiple = F,
-                 #                                 buttonLabel = "Choose File",
-                 #                                 placeholder = "Report...",
-                 #                                 accept = c("text/csv/tsv",
-                 #                                            "text/comma-seprated-values, text/plain",
-                 #                                            ".csv"),
-                 #                                 width = '100%')),
-                 #                       column(4, selectInput(inputId = "multidiaReport2",
-                 #                                   label = "Report File 2",
-                 #                                   choices = c("Skyline" = "skylineReport",
-                 #                                               "PeakView" = "peakviewReport"),
-                 #                                   selected = NULL,
-                 #                                   multiple = F,
-                 #                                   selectize = T,
-                 #                                   width = '100%'),
-                 #                       fileInput(inputId = "inputreport2",
-                 #                                 label = "Choose .txt / .csv / .tsv file",
-                 #                                 multiple = F,
-                 #                                 buttonLabel = "Choose File",
-                 #                                 placeholder = "Report...",
-                 #                                 accept = c("text/csv/tsv",
-                 #                                            "text/comma-seprated-values, text/plain",
-                 #                                            ".csv"),
-                 #                                 width = '100%')),
-                 #                       column(4, selectInput(inputId = "multidiaReport3",
-                 #                                   label = "Report File 3",
-                 #                                   choices = c("Skyline" = "skylineReport",
-                 #                                               "PeakView" = "peakviewReport"),
-                 #                                   selected = NULL,
-                 #                                   multiple = F,
-                 #                                   selectize = T,
-                 #                                   width = '100%'),
-                 #                       fileInput(inputId = "inputreport3",
-                 #                                 label = "Choose .txt / .csv / .tsv file",
-                 #                                 multiple = F,
-                 #                                 buttonLabel = "Choose File",
-                 #                                 placeholder = "Report...",
-                 #                                 accept = c("text/csv/tsv",
-                 #                                            "text/comma-seprated-values, text/plain",
-                 #                                            ".csv"),
-                 #                                 width = '100%')),
-                 #                       uiOutput(outputId = "multireportapply",
-                 #                                width = '100%'),
-                 #                       tags$head(
-                 #                         tags$style(HTML('#report{color: #6d7983;border-color:#eaa932}'))
-                 #                       ),
-                 #                       actionButton(inputId = "multireport",
-                 #                                    label = "Apply",
-                 #                                    icon = icon("toggle-off")),
-                 #                       title = "Reading DIA Report Files", solidHeader = T, status = "warning", width = 14
-                 #                   ))
-                 #                   # ,
-                 # 
-                 #                   # column(3, box(
-                 #                   #   textInput(inputId = "dataset1",
-                 #                   #                       label = "Report File 1",
-                 #                   #                       value = "",
-                 #                   #                       width = '100%',
-                 #                   #                       placeholder = "e.g. Dataset1 "),
-                 #                   #          textInput(inputId = "dataset2",
-                 #                   #                    label = "Report File 2",
-                 #                   #                    value = "",
-                 #                   #                    width = '100%',
-                 #                   #                    placeholder = "e.g. Dataset2 "),
-                 #                   #          textInput(inputId = "dataset3",
-                 #                   #                    label = "Report File 3",
-                 #                   #                    value = "",
-                 #                   #                    width = '100%',
-                 #                   #                    placeholder = "e.g. Dataset3 "),
-                 #                   #   uiOutput(outputId = "multireportapply",
-                 #                   #            width = '100%'),
-                 #                   #   tags$head(
-                 #                   #     tags$style(HTML('#report{color: #6d7983;border-color:#eaa932}'))
-                 #                   #   ),
-                 #                   #   actionButton(inputId = "multireportnames",
-                 #                   #                label = "Apply",
-                 #                   #                icon = icon("toggle-off")),
-                 #                   #   title = "Provide Names for Each Dataset", solidHeader = T, status = "warning", width = 14
-                 #                   # ))
-                 #         ))
-                 #  #         
-                 #          ,
-                 #          shinyjs::hidden(wellPanel(id = "multireportpanel",
-                 # 
-                 # 
-                 #          navbarPage(title = "Comparison Plots",
-                 #                     
-                 #                     tabPanel(title = "Report Statistics", value = "report_numbers",
-                 #                              # fluidRow(column(4,
-                 #                              #                 box(uiOutput(outputId = "massEreport", inline = TRUE, container = div),
-                 #                              #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                              #          column(4,
-                 #                              #                 box(uiOutput(outputId = "mreps", inline = TRUE, container = div),
-                 #                              #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                              #
-                 #                              # ),
-                 #                              fluidRow(
-                 #                                wellPanel(style = "background-color: #ffffff;",
-                 #                                          h4(strong("Number of proteins and peptides in each report file")),
-                 #                                          plotOutput("report_stats", click = "plot_click", width = '100%')
-                 #                                )
-                 #                              )
-                 #                     ),
-                 # 
-                 #                     tabPanel(title = "Venn Diagrams", value = "vennDiag",
-                 #                              # fluidRow(column(4,
-                 #                              #   box(uiOutput(outputId = "dotpreport", inline = TRUE, container = div),
-                 #                              #       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                              #   column(4,
-                 #                              #          box(uiOutput(outputId = "reps", inline = TRUE, container = div),
-                 #                              #       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                              #
-                 #                              #   ),
-                 #                              
-                 #                              wellPanel(style = "background-color: #ffffff;",
-                 #                                        h4(strong("Venn diagrams showing common and unique proteins and peptides quantified in each dataset")),
-                 #                              fluidRow(
-                 #                                
-                 #                                column(6, wellPanel(style = "background-color: #ffffff;",
-                 #                                                    h4(strong("Report 1 - Report 2"),
-                 #                                                       br(), br(),
-                 #                                                       plotOutput("rep1_rep2", click = "plot_click", width = '100%')))
-                 #                                ),
-                 #                                column(6, wellPanel(style = "background-color: #ffffff;",
-                 #                                                    h4(strong("Report 2 - Report 3"),
-                 #                                                       br(), br(),
-                 #                                                       plotOutput("rep2_rep3", click = "plot_click", width = '100%')))
-                 #                                )
-                 #                                
-                 #                              ) ,
-                 #                               fluidRow(column(6,wellPanel(style = "background-color: #ffffff;",
-                 #                                                           h4(strong("Report 1 - Report 3"),
-                 #                                                              br(), br(),
-                 #                                                              plotOutput("rep1_rep3", click = "plot_click", width = '100%')))
-                 #                               ),
-                 #                               column(6, wellPanel(style = "background-color: #ffffff;",
-                 #                                                  h4(strong("Report 1 - Report 2 - Report 3"),
-                 #                                                     br(), br(),
-                 #                                                     plotOutput("rep1_rep2_rep3", click = "plot_click", width = '100%'))))
-                 #                                        )
-                 #                              )
-                 #                     ),
-                 #                     tabPanel(title = "Retention Time Correlation", value = "multirtCor",
-                 #                              # fluidRow(column(4,
-                 #                              #   box(uiOutput(outputId = "dotpreport", inline = TRUE, container = div),
-                 #                              #       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                              #   column(4,
-                 #                              #          box(uiOutput(outputId = "reps", inline = TRUE, container = div),
-                 #                              #       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                              #
-                 #                              #   ),
-                 #                              fluidRow(
-                 #                                wellPanel(style = "background-color: #ffffff;",
-                 #                                          h4(strong("DIA Retention time correlation between common peptides quantified in each dataset")),
-                 #                                          plotOutput("multirtCorPlot", click = "plot_click", width = '100%')
-                 #                                )
-                 #                              )
-                 #                     ),
-                 #                     # tabPanel(title = "Transition Ratio Correlation", value = "multitransCor",
-                 #                     #          # fluidRow(column(4,
-                 #                     #          #                 box(uiOutput(outputId = "massEreport", inline = TRUE, container = div),
-                 #                     #          #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                     #          #          column(4,
-                 #                     #          #                 box(uiOutput(outputId = "mreps", inline = TRUE, container = div),
-                 #                     #          #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                     #          #
-                 #                     #          # ),
-                 #                     #          fluidRow(
-                 #                     #            wellPanel(style = "background-color: #ffffff;",
-                 #                     #                      h4(strong("Transition ratio correlation between common peptides quantified in each dataset")),
-                 #                     #                      plotOutput("multitransCorPlot", click = "plot_click", width = '100%')
-                 #                     #            )
-                 #                     #          )
-                 #                     # ),
-                 #                     tabPanel(title = "Protein Intensities Comparison", value = "multiprotInt",
-                 #                              # fluidRow(column(4,
-                 #                              #                 box(uiOutput(outputId = "cvreport", inline = TRUE, container = div),
-                 #                              #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
-                 #                              #          column(4,
-                 #                              #                 box(uiOutput(outputId = "cvreps", inline = TRUE, container = div),
-                 #                              #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
-                 #                              #
-                 #                              # ),
-                 #                              fluidRow(
-                 #                                wellPanel(style = "background-color: #ffffff;",
-                 #                                          h4(strong("Protein Intensities calculated by summing the normalized area values of corresponding peptides")),
-                 #                                          plotOutput("multiprotIntPlot", click = "plot_click", width = '100%')
-                 #                                )
-                 #                              )
-                 #                     )
-                 #          )
-                 #          ))
-                 # 
-                 #           ),
+                 tabItem(tabName = "multidatainput",
+                         fluidRow(column(4, h3(tags$i("Reading and Comparing Multiple Libraries"))),
+                                  column(2, offset = 2,
+                                         strong(h3(tags$a(icon("home", lib = "glyphicon"),"Home", onclick = "openTab('introduction')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                  ),
+                                  column(2, strong(h3(tags$a(icon("angle-double-right"), "Libraries Integration", onclick = "openTab('multilibrarycombination')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                  )
+                         ),
+                         wellPanel(style = "background-color: #ffffff;",
+                                   box(checkboxInput(inputId = "multireadthree",
+                                                     label = "Reading Three Libraries",
+                                                     value = FALSE,
+                                                     width = '100%'),
+                                       conditionalPanel(condition = "input.multireadthree == true",
+                                                        column(4, selectInput(inputId = "tmultilib1format",
+                                                                    label = "Seed Library Format",
+                                                                    choices = c("PeakView" = "peakview",
+                                                                                "OpenSwath" = "openswath",
+                                                                                "Skyline" = "skyline",
+                                                                                "Spectronaut" = "spectronaut"),
+                                                                    selected = NULL,
+                                                                    multiple = F,
+                                                                    selectize = T,
+                                                                    width = '100%'),
+                                                        fileInput(inputId = "tmultilib1",
+                                                                  label = "Choose .txt / .csv / .tsv file",
+                                                                  multiple = TRUE,
+                                                                  buttonLabel = "Choose file",
+                                                                  placeholder = "Libraries...",
+                                                                  accept = c("text/csv/tsv",
+                                                                             "text/comma-separated-values, text/plain",
+                                                                             ".csv"),
+                                                                  width = '100%')),
+                                                        column(4, selectInput(inputId = "tmultilib2format",
+                                                                    label = "External Library Format",
+                                                                    choices = c("PeakView" = "peakview",
+                                                                                "OpenSwath" = "openswath",
+                                                                                "Skyline" = "skyline",
+                                                                                "Spectronaut" = "spectronaut"),
+                                                                    selected = NULL,
+                                                                    multiple = F,
+                                                                    selectize = T,
+                                                                    width = '100%'),
+                                                        fileInput(inputId = "tmultilib2",
+                                                                  label = "Choose .txt / .csv / .tsv file",
+                                                                  multiple = TRUE,
+                                                                  buttonLabel = "Choose file",
+                                                                  placeholder = "Libraries...",
+                                                                  accept = c("text/csv/tsv",
+                                                                             "text/comma-separated-values, text/plain",
+                                                                             ".csv"),
+                                                                  width = '100%')),
+                                                        column(4, selectInput(inputId = "tmultilib3format",
+                                                                    label = "External Library Format",
+                                                                    choices = c("PeakView" = "peakview",
+                                                                                "OpenSwath" = "openswath",
+                                                                                "Skyline" = "skyline",
+                                                                                "Spectronaut" = "spectronaut"),
+                                                                    selected = NULL,
+                                                                    multiple = F,
+                                                                    selectize = T,
+                                                                    width = '100%'),
+                                                        fileInput(inputId = "tmultilib3",
+                                                                  label = "Choose .txt / .csv / .tsv file",
+                                                                  multiple = TRUE,
+                                                                  buttonLabel = "Choose file",
+                                                                  placeholder = "Libraries...",
+                                                                  accept = c("text/csv/tsv",
+                                                                             "text/comma-separated-values, text/plain",
+                                                                             ".csv"),
+                                                                  width = '100%')),
+                                                        uiOutput(outputId = "treadapply",
+                                                                 width = '100%'),
+                                                        tags$head(
+                                                          tags$style(HTML('#tmultiapply{color: #6d7983;border-color:lightblue}'))
+                                                        ),
+                                                        actionButton(inputId = "tmultiapply",
+                                                                     label = "Apply",
+                                                                     icon = icon("toggle-off"))
+                                                        ),
+                                       checkboxInput(inputId = "multireadfour",
+                                                     label = "Reading Four Libraries",
+                                                     value = FALSE,
+                                                     width = '100%'),
+                                       conditionalPanel(condition = "input.multireadfour == true",
+                                                        column(3, selectInput(inputId = "fmultilib1format",
+                                                                    label = "Seed Library Format",
+                                                                    choices = c("PeakView" = "peakview",
+                                                                                "OpenSwath" = "openswath",
+                                                                                "Skyline" = "skyline",
+                                                                                "Spectronaut" = "spectronaut"),
+                                                                    selected = NULL,
+                                                                    multiple = F,
+                                                                    selectize = T,
+                                                                    width = '100%'),
+                                                        fileInput(inputId = "fmultilib1",
+                                                                  label = "Choose .txt / .csv / .tsv file",
+                                                                  multiple = TRUE,
+                                                                  buttonLabel = "Choose file",
+                                                                  placeholder = "Libraries...",
+                                                                  accept = c("text/csv/tsv",
+                                                                             "text/comma-separated-values, text/plain",
+                                                                             ".csv"),
+                                                                  width = '100%')),
+                                                        column(3, selectInput(inputId = "fmultilib2format",
+                                                                    label = "External Library Format",
+                                                                    choices = c("PeakView" = "peakview",
+                                                                                "OpenSwath" = "openswath",
+                                                                                "Skyline" = "skyline",
+                                                                                "Spectronaut" = "spectronaut"),
+                                                                    selected = NULL,
+                                                                    multiple = F,
+                                                                    selectize = T,
+                                                                    width = '100%'),
+                                                        fileInput(inputId = "fmultilib2",
+                                                                  label = "Choose .txt / .csv / .tsv file",
+                                                                  multiple = TRUE,
+                                                                  buttonLabel = "Choose file",
+                                                                  placeholder = "Libraries...",
+                                                                  accept = c("text/csv/tsv",
+                                                                             "text/comma-separated-values, text/plain",
+                                                                             ".csv"),
+                                                                  width = '100%')),
+                                                        column(3, selectInput(inputId = "fmultilib3format",
+                                                                    label = "External Library Format",
+                                                                    choices = c("PeakView" = "peakview",
+                                                                                "OpenSwath" = "openswath",
+                                                                                "Skyline" = "skyline",
+                                                                                "Spectronaut" = "spectronaut"),
+                                                                    selected = NULL,
+                                                                    multiple = F,
+                                                                    selectize = T,
+                                                                    width = '100%'),
+                                                        fileInput(inputId = "fmultilib3",
+                                                                  label = "Choose .txt / .csv / .tsv file",
+                                                                  multiple = TRUE,
+                                                                  buttonLabel = "Choose file",
+                                                                  placeholder = "Libraries...",
+                                                                  accept = c("text/csv/tsv",
+                                                                             "text/comma-separated-values, text/plain",
+                                                                             ".csv"),
+                                                                  width = '100%')),
+                                                        column(3, selectInput(inputId = "fmultilib4format",
+                                                                    label = "External Library Format",
+                                                                    choices = c("PeakView" = "peakview",
+                                                                                "OpenSwath" = "openswath",
+                                                                                "Skyline" = "skyline",
+                                                                                "Spectronaut" = "spectronaut"),
+                                                                    selected = NULL,
+                                                                    multiple = F,
+                                                                    selectize = T,
+                                                                    width = '100%'),
+                                                        fileInput(inputId = "fmultilib4",
+                                                                  label = "Choose .txt / .csv / .tsv file",
+                                                                  multiple = TRUE,
+                                                                  buttonLabel = "Choose file",
+                                                                  placeholder = "Libraries...",
+                                                                  accept = c("text/csv/tsv",
+                                                                             "text/comma-separated-values, text/plain",
+                                                                             ".csv"),
+                                                                  width = '100%')),
+                                                        uiOutput(outputId = "freadapply",
+                                                                 width = '100%'),
+                                                        tags$head(
+                                                          tags$style(HTML('#fmultiapply{color: #6d7983;border-color:lightblue}'))
+                                                        ),
+                                                        actionButton(inputId = "fmultiapply",
+                                                                     label = "Apply",
+                                                                     icon = icon("toggle-off"))
+                                                        ),
+                                       
+                                       title = "Reading Multiple Libraries", solidHeader = TRUE, status = "info", width = 14
+                                       )
+                                   ),
+                         shinyjs::hidden(wellPanel(id = "multilibsummary",
+                                                   style = "background-color: #ffffff;",
+                                   box(
+                           column(3, wellPanel(h4("Seed Library"),
+                                     verbatimTextOutput(outputId = "multiseedlibsummary", placeholder = FALSE),
+                                     style = "background-color: #ffffff;")),
+                           column(3, wellPanel(h4("External Library 1"),
+                                               verbatimTextOutput(outputId = "multiextlibsummary1", placeholder = FALSE),
+                                               style = "background-color: #ffffff;")),
+                           column(3, wellPanel(h4("External Library 2"),
+                                               verbatimTextOutput(outputId = "multiextlibsummary2", placeholder = FALSE),
+                                               style = "background-color: #ffffff;")),
+                           column(3, wellPanel(h4("External Library 3"),
+                                               verbatimTextOutput(outputId = "multiextlibsummary3", placeholder = FALSE),
+                                               style = "background-color: #ffffff;")),
+                           title = "Libraries Summary", solidHeader = TRUE, status = "info", width = 14
+                         )
+                         )),
+                         
+                         shinyjs::hidden(wellPanel(id = "multilibcompare",
+                                                   style = "background-color: #ffffff;",
+                                   box(title = "Libraries Comparison", solidHeader = TRUE, status = "info", width = 14,
+                                       h4(tags$i("Analyzing the Retention time and Relative intensity correlations between seed and external libraries")),
+                                       tags$head(
+                                         tags$style(HTML('#corcompute{color: #6d7983;border-color:lightblue}'))
+                                       ),
+                                       actionButton(inputId = "corcompute",
+                                                    label = "Compute",
+                                                    icon = icon("refresh", lib = "glyphicon")),
+                                       br(), br(),
+                                       shinyjs::hidden(wellPanel(id = "corrstats",
+                                                                 style = "background-color: #ffffff;",
+                                                 br(),
+                                                 h4(tags$i("Ranking external libraries according to the correlation with the seed library")),
+                                                 br(),
+                                                 DT::dataTableOutput("librariescorrstats"),
+                                                 br(),
+                                                 plotOutput("multilibrtcorplot", click = "plot_click", width = '100%')
+                                                 
+                                                 )
+                                       ))
+                                   ))
+                         
+                         ),
+                 tabItem(tabName = "multilibrarycombination",
+                         fluidRow(column(4, h3(tags$i("Building an extended reference library by integrating multiple libraries"))),
+                                  column(2, offset = 2,
+                                         strong(h3(tags$a(icon("angle-double-left"),"Reading and Comparison", onclick = "openTab('multidatainput')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                  ),
+                                  column(2, strong(h3(tags$a(icon("angle-double-right"), "Visualization", onclick = "openTab('multivisualization')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                  )
+                         ),
+                         sidebarLayout(
+                           sidebarPanel(wellPanel(style = "background-color: #ffffff;",
+                                          
+                                                  box(h5(strong("Other parameters")),
+                                                    
+                                                      h5("Method = Time"),
+                                                      
+                                                      h5("Libraries = Original"),
+                                                      
+                                                      h5("Merge Libraries = Yes"),
+                                                      
+                                                      # uiOutput(outputId = "includelength"),
+                                                      # checkboxInput(inputId = "inclength", 
+                                                      #               label = "Include Length",
+                                                      #               value = FALSE,
+                                                      #               width = '100%'),
+                                                      # checkboxInput(inputId = "parseacc", 
+                                                      #               label = "Parse Accessions",
+                                                      #               value = FALSE),
+                                                      checkboxInput(inputId = "multiconsacc", 
+                                                                    label = "Consolidate Accessions",
+                                                                    value = FALSE,
+                                                                    width = '100%'),
+                                                      checkboxInput(inputId = "multigplots", 
+                                                                    label = "Generate plots",
+                                                                    value = TRUE,
+                                                                    width = '100%'),
+                                                      # checkboxInput(inputId = "mergelib", 
+                                                      #               label = "Merge Libraries",
+                                                      #               value = TRUE,
+                                                      #               width = '100%'),
+                                                      checkboxInput(inputId = "multirecalrt", 
+                                                                    label = "Recalibrate Retention Times",
+                                                                    value = FALSE,
+                                                                    width = '100%'),
+                                                      numericInput(inputId = "multicutoffr2",
+                                                                   label = "Retention Time Correlation Cutoff",
+                                                                   value = 0.8,
+                                                                   min = 0,
+                                                                   max = 1,
+                                                                   step = 0.1,
+                                                                   width = '100%'),
+                                                      numericInput(inputId = "multicutofftsize",
+                                                                   label = "Training Set Size Cutoff",
+                                                                   value = 50,
+                                                                   min = 20,
+                                                                   step = 5,
+                                                                   width = '100%'),
+                                                      actionButton(inputId = "multicombrun",
+                                                                   label = "Run",
+                                                                   icon = icon("refresh", lib = "glyphicon"),
+                                                                   width = '200px'),
+                                                      tags$head(
+                                                        tags$style(HTML('#multicombrun{color: #6d7983;border-color:#eaa932}'))
+                                                      ),
+                                                      title = "Parameters", solidHeader = TRUE, status = "info", width = 14)
+                                                  
+                           ),
+                           wellPanel(style = "background-color: #ffffff;",
+                                     # h4(tags$i("Download Combined Library")),
+                                     #strong("Select file format"),
+                                     box(selectInput(inputId = "multioutputlibformat",
+                                                     label = "Library Format",
+                                                     choices = c("PeakView", "OpenSwath", "Skyline", "Spectronaut"),
+                                                     selected = NULL,
+                                                     multiple = F,
+                                                     selectize = T,
+                                                     width = '100%'),
+                                         downloadButton(outputId = "multidownloadoutputLib", label = "Download"),
+                                         tags$head(
+                                           tags$style(HTML('#multidownloadoutputLib{color: #6d7983;border-color:#008000}'))
+                                         ),
+                                         title = "Download Library", solidHeader = TRUE, status = "success", width = 14)
+                           )
+                           ),
+                           mainPanel(
+                             wellPanel(style = "background-color: #ffffff;",
+                                       h4(tags$i("Combined Library")),
+                                       wellPanel(h5("Library Summary"),
+                                                 
+                                                 # verbatimTextOutput(outputId = "seedlibsummary", inline = TRUE, container = div),
+                                                 verbatimTextOutput(outputId = "multicomblibsummary", placeholder = FALSE),
+                                                 style = "background-color: #ffffff;"),
+                                       br(),
+                                       DT::dataTableOutput(outputId = "multicombineLib"),
+                                       br(), br(), br(),
+                                       plotOutput("multicombplot", width = '100%')
+                             )
+                           )
+                         )
+                         ),
+                 tabItem(tabName = "multivisualization",
+                         fluidRow(column(4, h3(tags$i("Data Visualization"))),
+                                  column(2, offset = 2,
+                                         strong(h3(tags$a(icon("home", lib = "glyphicon"),"Home", onclick = "openTab('introduction')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                  ),
+                                  column(2, strong(h3(tags$a(icon("edit", lib = "glyphicon"), "Help", onclick = "openTab('help')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                  )
+                         ),
+                         fluidRow(tabBox(width = 12,
+                                         tabPanel(title = "Iteration 1",
+                                                  fluidRow(column(8, wellPanel(style = "background-color: #ffffff;",
+                                                            h4(strong("Venn Diagram of proteins and peptides in Base library and ranked 1 Add-on library"),
+                                                               br(), br(),
+                                                               plotOutput("multivenn1", width = '100%')))))
+                                                  ),
+                                         tabPanel(title = "Iteration 2",
+                                                  fluidRow(column(8, wellPanel(style = "background-color: #ffffff;",
+                                                            h4(strong("Venn Diagram of proteins and peptides in library generated in Iteration 1 and ranked 2 Add-on library"),
+                                                               br(), br(),
+                                                               plotOutput("multivenn2", width = '100%')))))
+                                                  ),
+                                         tabPanel(title = "Iteration 3",
+                                                  fluidRow(column(8, wellPanel(style = "background-color: #ffffff;",
+                                                            h4(strong("Venn Diagram of proteins and peptides in library generated in Iteration 2 and ranked 3 Add-on library"),
+                                                               br(), br(),
+                                                               plotOutput("multivenn3", width = '100%')))))
+                                                  )
+                                         ))
+                         
+                         ),
+                 
+                 tabItem(tabName = "dia_visualization",
+                         fluidRow(column(4, h3(tags$i("DIA Report Analysis and Visualization"))),
+                                  column(2, offset = 2,
+                                         strong(h3(tags$a(icon("home", lib = "glyphicon"),"Home", onclick = "openTab('introduction')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                         ),
+                                  column(2, strong(h3(tags$a( "Quality Check Plots", onclick = "openTab('quality_plots')", icon("angle-double-right")))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                         )
+                                         ),
+                         sidebarLayout(
+                           sidebarPanel(
+                             wellPanel(style = "background-color: #ffffff;",
+                                       box(selectInput(inputId = "diaReport",
+                                                       label = "Report File",
+                                                       choices = c("Skyline" = "skylineReport",
+                                                                   "PeakView" = "peakviewReport"),
+                                                       selected = NULL,
+                                                       multiple = F,
+                                                       selectize = T,
+                                                       width = '100%'),
+                                           fileInput(inputId = "inputreport",
+                                                     label = "Choose .txt / .csv / .tsv file",
+                                                     multiple = F,
+                                                     buttonLabel = "Choose File",
+                                                     placeholder = "Report...",
+                                                     accept = c("text/csv/tsv",
+                                                                "text/comma-seprated-values, text/plain",
+                                                                ".csv"),
+                                                     width = '100%'),
+                                           uiOutput(outputId = "reportapply",
+                                                    width = '100%'),
+                                           tags$head(
+                                             tags$style(HTML('#report{color: #6d7983;border-color:#eaa932}'))
+                                           ),
+                                           actionButton(inputId = "report",
+                                                        label = "Apply",
+                                                        icon = icon("toggle-off")),
+                                           title = "Reading DIA Report File", solidHeader = T, status = "warning", width = 14
+                                       )
+                             ),
+                             wellPanel(style = "background-color: #ffffff;",
+                                       box(checkboxInput(inputId = "refineReport",
+                                                         label = "Process Report File",
+                                                         value = TRUE,
+                                                         width = '100%'),
+                                           conditionalPanel(condition = "input.refineReport == true",
+                                                            textInput(inputId = "refineText",
+                                                                      label = "Enter a specific identifier to remove standard or spiked peptides/proteins",
+                                                                      value = "",
+                                                                      width = '100%',
+                                                                      placeholder = "e.g. sp| , iRT "),
+                                                            # numericInput(inputId = "allRep",
+                                                            #           label = "Enter the number of replicates",
+                                                            #           value = 3,
+                                                            #           width = '100%',
+                                                            #           min = 1,
+                                                            #           max = 20,
+                                                            #           step = 1),
+                                                            # numericInput(inputId = "bioRep",
+                                                            #           label = "Enter the number of biological replicates",
+                                                            #           value = 2,
+                                                            #           width = '100%',
+                                                            #           min = 1,
+                                                            #           max = 20,
+                                                            #           step = 1),
+                                                            checkboxInput(inputId = "averagedotp",
+                                                                          label = "Average DotP values for peptides among Replicates",
+                                                                          value = F,
+                                                                          width = '100%'),
+                                                            checkboxInput(inputId = "averagemasserr",
+                                                                          label = "Average Mass Error values for peptides among Replicates",
+                                                                          value = F,
+                                                                          width = '100%'),
+                                                            checkboxInput(inputId = "averagert",
+                                                                          label = "Average Retention Time values for peptides among Replicates",
+                                                                          value = F,
+                                                                          width = '100%'),
+                                                            checkboxInput(inputId = "averageqval",
+                                                                          label = "Average Q-values for peptides among Replicates",
+                                                                          value = F,
+                                                                          width = '100%'),
+                                                            tags$head(
+                                                              tags$style(HTML('#processFile{color: #6d7983;border-color:#eaa932}'))
+                                                            ),
+                                                            uiOutput(outputId = "process.rep",
+                                                                     width = '100%'),
+                                                            actionButton(inputId = "processFile",
+                                                                         label = "Apply")
+                                           ),
+                                           bsTooltip(id = "refineReport", title = "Refine report file by removing standard or spiked peptides/proteins",
+                                                     placement = "right", trigger = "hover"),
+                                           title = "Process Report File", solidHeader = TRUE, status = "warning", width = 14
+                                       )
+                             ),
+                             wellPanel(style = "background-color: #ffffff;",
+                                       box(tags$head(
+                                         tags$style(HTML('#downloadreport{color: #6d7983;border-color:#008000}'))
+                                       ),
+                                       uiOutput(outputId = "downloadrep"),
+                                       downloadButton(outputId = "downloadreport", label = "Download"),
+                                       title = "Downloading Report File", solidHeader = TRUE, status = "success", width = 14))
+                           ),
+                           mainPanel(
+                             shinyjs::hidden(wellPanel(id = "reportreadpanel",
+                                                       tabPanel("Report File",
+                                                                wellPanel(h5("Summary"),
+                                                                          verbatimTextOutput(outputId = "reportSummary", placeholder = FALSE),
+                                                                          style = "background-color: #ffffff;"),
+                                                                br(),
+                                                                DT::dataTableOutput("reportContents"),
+                                                                br(), br(), br()
+                                                       )
+                             )
+                             )
+                           ),
+                           fluid = TRUE
+                         )
+                                         ),
+
+                 tabItem(tabName = "quality_plots",
+                         fluidRow(column(4, h3(tags$i("Quality Check Plots"))),
+                                  column(2, offset = 2,
+                                         strong(h3(tags$a(icon("angle-double-left"),"Reading Reports", onclick = "openTab('dia_visualization')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                         ),
+                                  column(2, strong(h3(tags$a("Protein Intensities", onclick = "openTab('prot_intensities')", icon("angle-double-right")))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                         )
+                                         ),
+                         br(), br(),
+                         wellPanel(style = "background-color: #ffffff;",
+                                   fluidRow(column(4,
+                                                   box(uiOutput(outputId = "reportfilename", inline = TRUE, container = div),
+                                                       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                            column(4,
+                                                   box(uiOutput(outputId = "reps", inline = TRUE, container = div),
+                                                       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+
+                                   )
+                         ),
+                         navbarPage(title = "Plots",
+
+                                    tabPanel(title = "Dot Product", value = "dotP",
+                                             # fluidRow(column(4,
+                                             #   box(uiOutput(outputId = "dotpreport", inline = TRUE, container = div),
+                                             #       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                             #   column(4,
+                                             #          box(uiOutput(outputId = "reps", inline = TRUE, container = div),
+                                             #       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                             #
+                                             #   ),
+                                             fluidRow(
+                                               wellPanel(style = "background-color: #ffffff;",
+                                                 h4(strong("Dot Product Values Among Replicates")),
+                                                 plotOutput("dotpPlot", click = "plot_click", width = '100%')
+                                               )
+                                             )
+                                    ),
+                                    tabPanel(title = "Intensity Distribution", value = "intensity",
+                                             # fluidRow(column(4,
+                                             #   box(uiOutput(outputId = "dotpreport", inline = TRUE, container = div),
+                                             #       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                             #   column(4,
+                                             #          box(uiOutput(outputId = "reps", inline = TRUE, container = div),
+                                             #       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                             #
+                                             #   ),
+                                             fluidRow(
+                                               wellPanel(style = "background-color: #ffffff;",
+                                                 h4(strong("Peptide Intensity Distribution Among Replicates")),
+                                                 plotOutput("intensityPlot", click = "plot_click", width = '100%')
+                                               )
+                                             )
+                                    ),
+                                    tabPanel(title = "Mass Error", value = "massE",
+                                             # fluidRow(column(4,
+                                             #                 box(uiOutput(outputId = "massEreport", inline = TRUE, container = div),
+                                             #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                             #          column(4,
+                                             #                 box(uiOutput(outputId = "mreps", inline = TRUE, container = div),
+                                             #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                             #
+                                             # ),
+                                             fluidRow(
+                                               wellPanel(style = "background-color: #ffffff;",
+                                                 h4(strong("Mass Error Values Among Replicates")),
+                                                 plotOutput("massEPlot", click = "plot_click", width = '100%')
+                                               )
+                                             )
+                                    ),
+                                    tabPanel(title = "Coefficent of Variation (CV)", value = "cV",
+                                             # fluidRow(column(4,
+                                             #                 box(uiOutput(outputId = "cvreport", inline = TRUE, container = div),
+                                             #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                             #          column(4,
+                                             #                 box(uiOutput(outputId = "cvreps", inline = TRUE, container = div),
+                                             #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                             #
+                                             # ),
+                                             fluidRow(
+                                               wellPanel(style = "background-color: #ffffff;",
+                                                 h4(strong("Coefficient of Variation among Replicates")),
+                                                 plotOutput("cvPlot", click = "plot_click", width = '100%')
+                                               )
+                                             )
+                                    ),
+                                    tabPanel(title = "Q-Values", value = "qV",
+                                             # fluidRow(column(4,
+                                             #                 box(uiOutput(outputId = "qvalreport", inline = TRUE, container = div),
+                                             #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                             #          column(4,
+                                             #                 box(uiOutput(outputId = "qreps", inline = TRUE, container = div),
+                                             #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                             #
+                                             # ),
+                                             fluidRow(
+                                               wellPanel(style = "background-color: #ffffff;",
+                                                 h4(strong("Q-Value among Replicates")),
+                                                 plotOutput("qvalPlot", click = "plot_click", width = '100%')
+                                               )
+                                             )
+                                    ),
+                                    tabPanel(title = "DDA-DIA RT Correlation", value = "drtCor",
+                                             # fluidRow(column(4,
+                                             #                 box(uiOutput(outputId = "rtreport", inline = TRUE, container = div),
+                                             #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                             #          column(4,
+                                             #                 box(uiOutput(outputId = "rtreps", inline = TRUE, container = div),
+                                             #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                             #
+                                             # ),
+                                             fluidRow(column(9, wellPanel(style = "background-color: #ffffff;",
+                                                                          h5(strong("Select the library to compare the DDA and DIA retention times")),
+                                                                          selectInput(inputId = "report_lib_format",
+                                                                                      label = "Library Format",
+                                                                                      choices = c("PeakView" = "peakview",
+                                                                                                  "OpenSwath" = "openswath",
+                                                                                                  "Skyline" = "skyline",
+                                                                                                  "Spectronaut" = "spectronaut"),
+                                                                                      selected = NULL,
+                                                                                      multiple = F,
+                                                                                      selectize = T,
+                                                                                      width = '100%'),
+                                                                          fileInput(inputId = "report_lib",
+                                                                                    label = "Choose .txt / .csv / .tsv file",
+                                                                                    multiple = TRUE,
+                                                                                    buttonLabel = "Choose file",
+                                                                                    placeholder = "Libraries...",
+                                                                                    accept = c("text/csv/tsv",
+                                                                                               "text/comma-separated-values, text/plain",
+                                                                                               ".csv"),
+                                                                                    width = '100%')
+                                             )
+                                             ),
+                                             column(3, actionButton("drtplot", "Plot", width = '300px', icon = icon("refresh", lib = "glyphicon")))
+
+                                               ),
+                                             fluidRow(
+                                               wellPanel(style = "background-color: #ffffff;",
+                                                 h4(strong("Correlation Between Library and DIA Averaged Measured Retention Times")),
+                                                 plotOutput("drtPlot", click = "plot_click", width = '100%')
+                                               )
+                                             )
+                                             )
+                         )
+                                         ),
+                 tabItem(tabName = "prot_intensities",
+                         fluidRow(column(4, h3(tags$i("Protein Intensities"))),
+                                  column(2, offset = 2,
+                                         strong(h3(tags$a(icon("angle-double-left"),"Quality Check Plots", onclick = "openTab('quality_plots')"))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                  ),
+                                  column(2, strong(h3(tags$a("Multiple Reports", onclick = "openTab('multi_report')", icon("angle-double-right")))),
+                                         tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                  )
+                         ),
+                         # ,
+                         # br(), br(),
+                         # wellPanel(style = "background-color: #ffffff;",
+                         #           fluidRow(column(4,
+                         #                           box(uiOutput(outputId = "reportfilename", inline = TRUE, container = div),
+                         #                               title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                         #                    column(4,
+                         #                           box(uiOutput(outputId = "reps", inline = TRUE, container = div),
+                         #                               title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                         #
+                         #           )
+                         # )
+                         # ,
+                         navbarPage(title = "Protein Intensities",
+                                    tabPanel(title = "Table", value = "int_table",
+                                             fluidRow(
+                                               wellPanel(style = "background-color: #ffffff;",
+                                                 h5(strong("Protein Intensities calculated by summing the normalized area values of corresponding peptides")),
+                                                 DT::dataTableOutput("intensity_table")
+                                               )
+                                             )),
+                                    tabPanel(title = "Plot", value = "int_plot",
+                                             fluidRow(
+                                               wellPanel(style = "background-color: #ffffff;",
+                                                 h5(strong("Protein Intensities calculated by summing the normalized area values of corresponding peptides")),
+                                                 plotOutput("intensity_plot", click = "plot_click", width = '100%')
+                                             )
+                                             )
+                                             )
+                                    )
+
+                         ),
+                  tabItem(tabName = "multi_report",
+                          fluidRow(column(4, h3(tags$i("Multiple Reports Comparison"))),
+                                   column(2, offset = 2,
+                                          strong(h3(tags$a(icon("angle-double-left"),"Protein Intensities", onclick = "openTab('prot_intensities')"))),
+                                          tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                   ),
+                                   column(2, strong(h3(tags$a(icon("edit", lib = "glyphicon"), "Help", onclick = "openTab('help')"))),
+                                          tags$script(HTML("
+                                                          var openTab = function(tabName){
+                                                          $('a', $('.sidebar')).each(function(){
+                                                          if(this.getAttribute('data-value') == tabName) {
+                                                          this.click()
+                                                          };
+                                                          });
+                                                          }
+                                                          "))
+                                   )
+                          )
+                 ,
+                         wellPanel(style = "background-color: #ffffff;",
+                                   fluidRow(column(9,
+                                   box(
+                                     column(4, selectInput(inputId = "multidiaReport1",
+                                                   label = "Report File 1",
+                                                   choices = c("Skyline" = "skylineReport",
+                                                               "PeakView" = "peakviewReport"),
+                                                   selected = NULL,
+                                                   multiple = F,
+                                                   selectize = T,
+                                                   width = '100%'),
+                                       fileInput(inputId = "inputreport1",
+                                                 label = "Choose .txt / .csv / .tsv file",
+                                                 multiple = F,
+                                                 buttonLabel = "Choose File",
+                                                 placeholder = "Report...",
+                                                 accept = c("text/csv/tsv",
+                                                            "text/comma-seprated-values, text/plain",
+                                                            ".csv"),
+                                                 width = '100%')),
+                                       column(4, selectInput(inputId = "multidiaReport2",
+                                                   label = "Report File 2",
+                                                   choices = c("Skyline" = "skylineReport",
+                                                               "PeakView" = "peakviewReport"),
+                                                   selected = NULL,
+                                                   multiple = F,
+                                                   selectize = T,
+                                                   width = '100%'),
+                                       fileInput(inputId = "inputreport2",
+                                                 label = "Choose .txt / .csv / .tsv file",
+                                                 multiple = F,
+                                                 buttonLabel = "Choose File",
+                                                 placeholder = "Report...",
+                                                 accept = c("text/csv/tsv",
+                                                            "text/comma-seprated-values, text/plain",
+                                                            ".csv"),
+                                                 width = '100%')),
+                                       column(4, selectInput(inputId = "multidiaReport3",
+                                                   label = "Report File 3",
+                                                   choices = c("Skyline" = "skylineReport",
+                                                               "PeakView" = "peakviewReport"),
+                                                   selected = NULL,
+                                                   multiple = F,
+                                                   selectize = T,
+                                                   width = '100%'),
+                                       fileInput(inputId = "inputreport3",
+                                                 label = "Choose .txt / .csv / .tsv file",
+                                                 multiple = F,
+                                                 buttonLabel = "Choose File",
+                                                 placeholder = "Report...",
+                                                 accept = c("text/csv/tsv",
+                                                            "text/comma-seprated-values, text/plain",
+                                                            ".csv"),
+                                                 width = '100%')),
+                                       uiOutput(outputId = "multireportapply",
+                                                width = '100%'),
+                                       tags$head(
+                                         tags$style(HTML('#report{color: #6d7983;border-color:#eaa932}'))
+                                       ),
+                                       actionButton(inputId = "multireport",
+                                                    label = "Apply",
+                                                    icon = icon("toggle-off")),
+                                       title = "Reading DIA Report Files", solidHeader = T, status = "warning", width = 14
+                                   ))
+                                   ,
+
+                                   column(3, box(
+                                     textInput(inputId = "dataset1",
+                                                         label = "Report File 1",
+                                                         value = "",
+                                                         width = '100%',
+                                                         placeholder = "e.g. Dataset1 "),
+                                            textInput(inputId = "dataset2",
+                                                      label = "Report File 2",
+                                                      value = "",
+                                                      width = '100%',
+                                                      placeholder = "e.g. Dataset2 "),
+                                            textInput(inputId = "dataset3",
+                                                      label = "Report File 3",
+                                                      value = "",
+                                                      width = '100%',
+                                                      placeholder = "e.g. Dataset3 "),
+                                     # uiOutput(outputId = "multireportapply",
+                                     #          width = '100%'),
+                                     # tags$head(
+                                     #   tags$style(HTML('#report{color: #6d7983;border-color:#eaa932}'))
+                                     # ),
+                                     # actionButton(inputId = "multireportnames",
+                                     #              label = "Apply",
+                                     #              icon = icon("toggle-off")),
+                                     title = "Provide Names for Each Dataset", solidHeader = T, status = "warning", width = 14
+                                   ))
+                         ))
+                  #
+                          ,
+                          shinyjs::hidden(wellPanel(id = "multireportpanel",
+
+
+                          navbarPage(title = "Comparison Plots",
+
+                                     tabPanel(title = "Report Statistics", value = "report_numbers",
+                                              # fluidRow(column(4,
+                                              #                 box(uiOutput(outputId = "massEreport", inline = TRUE, container = div),
+                                              #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                              #          column(4,
+                                              #                 box(uiOutput(outputId = "mreps", inline = TRUE, container = div),
+                                              #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                              #
+                                              # ),
+                                              fluidRow(
+                                                wellPanel(style = "background-color: #ffffff;",
+                                                          h4(strong("Number of proteins and peptides in each report file")),
+                                                          plotOutput("report_stats", click = "plot_click", width = '100%')
+                                                )
+                                              )
+                                     ),
+
+                                     tabPanel(title = "Venn Diagrams", value = "vennDiag",
+                                              # fluidRow(column(4,
+                                              #   box(uiOutput(outputId = "dotpreport", inline = TRUE, container = div),
+                                              #       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                              #   column(4,
+                                              #          box(uiOutput(outputId = "reps", inline = TRUE, container = div),
+                                              #       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                              #
+                                              #   ),
+
+                                              wellPanel(style = "background-color: #ffffff;",
+                                                        h4(strong("Venn diagrams showing common and unique proteins and peptides quantified in each dataset")),
+                                              fluidRow(
+
+                                                column(6, wellPanel(style = "background-color: #ffffff;",
+                                                                    h4(strong("Report 1 - Report 2"),
+                                                                       br(), br(),
+                                                                       plotOutput("rep1_rep2", click = "plot_click", width = '100%')))
+                                                ),
+                                                column(6, wellPanel(style = "background-color: #ffffff;",
+                                                                    h4(strong("Report 2 - Report 3"),
+                                                                       br(), br(),
+                                                                       plotOutput("rep2_rep3", click = "plot_click", width = '100%')))
+                                                )
+
+                                              ) ,
+                                               fluidRow(column(6,wellPanel(style = "background-color: #ffffff;",
+                                                                           h4(strong("Report 1 - Report 3"),
+                                                                              br(), br(),
+                                                                              plotOutput("rep1_rep3", click = "plot_click", width = '100%')))
+                                               ),
+                                               column(6, wellPanel(style = "background-color: #ffffff;",
+                                                                  h4(strong("Report 1 - Report 2 - Report 3"),
+                                                                     br(), br(),
+                                                                     plotOutput("rep1_rep2_rep3", click = "plot_click", width = '100%'))))
+                                                        )
+                                              )
+                                     ),
+                                     tabPanel(title = "Retention Time Correlation", value = "multirtCor",
+                                              # fluidRow(column(4,
+                                              #   box(uiOutput(outputId = "dotpreport", inline = TRUE, container = div),
+                                              #       title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                              #   column(4,
+                                              #          box(uiOutput(outputId = "reps", inline = TRUE, container = div),
+                                              #       title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                              #
+                                              #   ),
+                                              fluidRow(
+                                                wellPanel(style = "background-color: #ffffff;",
+                                                          h4(strong("DIA Retention time correlation between common peptides quantified in each dataset")),
+                                                          plotOutput("multirtCorPlot", click = "plot_click", width = '100%')
+                                                )
+                                              )
+                                     ),
+                                     # tabPanel(title = "Transition Ratio Correlation", value = "multitransCor",
+                                     #          # fluidRow(column(4,
+                                     #          #                 box(uiOutput(outputId = "massEreport", inline = TRUE, container = div),
+                                     #          #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                     #          #          column(4,
+                                     #          #                 box(uiOutput(outputId = "mreps", inline = TRUE, container = div),
+                                     #          #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                     #          #
+                                     #          # ),
+                                     #          fluidRow(
+                                     #            wellPanel(style = "background-color: #ffffff;",
+                                     #                      h4(strong("Transition ratio correlation between common peptides quantified in each dataset")),
+                                     #                      plotOutput("multitransCorPlot", click = "plot_click", width = '100%')
+                                     #            )
+                                     #          )
+                                     # ),
+                                     
+                                     tabPanel(title = "Coefficient of Variation (CV)", value = "multiCV",
+                                              # fluidRow(column(4,
+                                              #                 box(uiOutput(outputId = "cvreport", inline = TRUE, container = div),
+                                              #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                              #          column(4,
+                                              #                 box(uiOutput(outputId = "cvreps", inline = TRUE, container = div),
+                                              #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                              #
+                                              # ),
+                                              fluidRow(
+                                                wellPanel(style = "background-color: #ffffff;",
+                                                          h4(strong("Coefficient of Variation comparison")),
+                                                          plotOutput("multiCVPlot", click = "plot_click", width = '100%')
+                                                )
+                                              )
+                                     ),
+                                     
+                                     tabPanel(title = "Protein Intensities Comparison", value = "multiprotInt",
+                                              # fluidRow(column(4,
+                                              #                 box(uiOutput(outputId = "cvreport", inline = TRUE, container = div),
+                                              #                     title = "Report File", solidHeader = TRUE, status = "warning", width = 10, height = 100)),
+                                              #          column(4,
+                                              #                 box(uiOutput(outputId = "cvreps", inline = TRUE, container = div),
+                                              #                     title = "No. of Replicates", solidHeader = TRUE, status = "warning", width = 10, height = 100))
+                                              #
+                                              # ),
+                                              fluidRow(
+                                                wellPanel(style = "background-color: #ffffff;",
+                                                          h4(strong("Protein Intensities calculated by summing the normalized area values of corresponding peptides")),
+                                                          plotOutput("multiprotIntPlot", click = "plot_click", width = 1280, height = 1700)
+                                                )
+                                              )
+                                     )
+                                     
+                                     
+                          )
+                          ))
+
+                           ),
                  
                  tabItem(tabName = "help",
                          fluidRow(column(5, h2(strong("iSwathX help and tutorial"))),
