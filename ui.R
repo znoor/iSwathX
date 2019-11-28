@@ -61,7 +61,7 @@ shinyUI(fluidPage(
   fluidRow(
     column(12, 
            dashboardPage(
-             dashboardHeader(title = "iSwathX",
+             dashboardHeader(title = "iSwathX 2.0",
                              # title = img(src='title2.png', align = "centre", width = 160, height = 50),
                              disable = FALSE,
                              titleWidth = 300),
@@ -237,12 +237,13 @@ shinyUI(fluidPage(
                          wellPanel(fluidRow(
                            column(6, fluidRow(img(src='title1.png', align = "left", width = "65%", height = "65%")),
                                   fluidRow(strong(h4(HTML("A web tool to generate extended peptide reference MS/MS libraries for use in DIA mass spectrometry.")))),
-                                  fluidRow(strong(HTML("Main functions performed by SwathXtend application include: <br />
+                                  fluidRow(strong(HTML("Major features of the application includes: <br />
                                                        <br />
-                                                       1. Library format conversions <br />
-                                                       2. Libraries comparisons <br />
-                                                       3. Building the combined or extended libraries <br />
-                                                       4. Data plotting or Visualization <br />"), style = "background-color: #ffffff;")),
+                                                       1. Library files processing, cleaning, and visualizations <br />
+                                                       2. Quality checks, retention time calibration and combination of libraries <br />
+                                                       3. Parallel processing of ~4 library files <br />
+                                                       4. DIA report files processing and analysis <br />"), style = "background-color: #ffffff;")),
+                                  fluidRow(strong(h5(HTML("See 'Help' section for details of newly added functions.")))),
                                   fluidRow(column(4, 
                                                   strong(h3(tags$a(icon("play"), "iSwathX Wizard", onclick = "openTab('autowizard')"))),
                                                   tags$script(HTML("
