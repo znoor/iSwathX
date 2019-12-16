@@ -235,7 +235,7 @@ shinyUI(fluidPage(
                tabItems(
                  tabItem(tabName = "introduction",
                          wellPanel(fluidRow(
-                           column(6, fluidRow(img(src='title1.png', align = "left", width = "65%", height = "65%")),
+                           column(6, fluidRow(img(src='title2.png', align = "left", width = "65%", height = "65%")),
                                   fluidRow(strong(h4(HTML("A web tool to generate extended peptide reference MS/MS libraries for use in DIA mass spectrometry.")))),
                                   fluidRow(strong(HTML("Major features of the application includes: <br />
                                                        <br />
