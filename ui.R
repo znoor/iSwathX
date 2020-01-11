@@ -280,7 +280,7 @@ shinyUI(fluidPage(
                                                   )
                                                   )
                                                   ),
-                           column(6, img(src='titleimage.png', align = "right", width = "90%", height = "90%"))
+                           column(6, img(src='titlefig.png', align = "right", width = "90%", height = "90%"))
                                                   ),
                            style = "background-color: #ffffff;"),
                          splitLayout(cellWidths = c("45%", "55%"),
