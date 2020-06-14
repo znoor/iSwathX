@@ -3233,9 +3233,15 @@ shinyServer(function(input, output, session) {
           dat3 <- mutate(dat3, "Data" = input$dataset3)
           
           
+          
           dat1 <- dat1[!duplicated(dat1$Modified.Sequence),]
           dat2 <- dat2[!duplicated(dat2$Modified.Sequence),]
           dat3 <- dat3[!duplicated(dat3$Modified.Sequence),]
+          
+         dat1 <- dat1[, c(1:10, 56, 57)]
+         dat2 <- dat2[, c(1:10, 56, 57)]
+         dat3 <- dat3[, c(1:10, 56, 57)]
+          
           
           pv_dat <- rbind(dat1, dat2)
           pv_dat <- rbind(pv_dat, dat3)
@@ -3407,7 +3413,7 @@ shinyServer(function(input, output, session) {
                    , res = 300
           )
 
-          ppp <- grid.arrange(grobs = int_plot[[4]])
+          ppp <- grid.arrange(grobs = list(int_plot[[4]]))
           print(ppp)
 
           incProgress(0.1, detail = "plotting")
