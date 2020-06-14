@@ -77,7 +77,7 @@ shinyUI(fluidPage(
                                                    newtab = TRUE,
                                                    selected = FALSE,
                                                    startExpanded = FALSE),
-                                          menuItem(text = "iSwathX Wizard",
+                                          menuItem(text = "Automated Analysis (iSwathX Wizard)",
                                                    icon = icon("road", lib = "glyphicon"), 
                                                    #badgeLabel = 1, 
                                                    #badgeColor = "aqua",
@@ -86,11 +86,11 @@ shinyUI(fluidPage(
                                                    newtab = TRUE,
                                                    selected = FALSE,
                                                    startExpanded = FALSE),
-                                          menuItem(text = "Manual Wizard",
+                                          menuItem(text = "Expert Analysis of Two Libraries",
                                                    icon = icon("industry", "fa-1x"),
                                                    selected = FALSE,
                                                    startExpanded = TRUE,
-                                                   menuItem(text = "Libraries Input and Format Conversion",
+                                                   menuItem(text = "Library Input and Format Conversion",
                                                             icon = icon("list", lib = "glyphicon", "fa-1x"), 
                                                             #badgeLabel = 2, 
                                                             #badgeColor = "aqua",
@@ -100,7 +100,7 @@ shinyUI(fluidPage(
                                                             selected = FALSE
                                                             # startExpanded = FALSE
                                                    ),
-                                                   menuItem(text = "Libraries Comparison",
+                                                   menuItem(text = "Library Comparison",
                                                             icon = icon("duplicate", lib = "glyphicon", "fa-1x"), 
                                                             #badgeLabel = 3, 
                                                             #badgeColor = "aqua",
@@ -119,7 +119,16 @@ shinyUI(fluidPage(
                                                             newtab = TRUE,
                                                             selected = FALSE
                                                             # startExpanded = FALSE
-                                                   )
+                                                   ),
+                                                   menuItem(text = "Library Data Visualization",
+                                                            icon = icon("picture", lib = "glyphicon", "fa-1x"), 
+                                                            #badgeLabel = 4, 
+                                                            #badgeColor = "green",
+                                                            tabName = "visualization",
+                                                            #href = "links",
+                                                            newtab = TRUE,
+                                                            selected = FALSE,
+                                                            startExpanded = FALSE)
                                           ),
                                           # menuItem(text = "Statistical Analysis",
                                           #          icon = icon("stats", lib = "glyphicon", "fa-1x"),
@@ -130,20 +139,12 @@ shinyUI(fluidPage(
                                           #          newtab = TRUE,
                                           #          selected = FALSE,
                                           #          startExpanded = FALSE),
-                                          menuItem(text = "Libraries Data Visualization",
-                                                   icon = icon("picture", lib = "glyphicon", "fa-1x"), 
-                                                   #badgeLabel = 4, 
-                                                   #badgeColor = "green",
-                                                   tabName = "visualization",
-                                                   #href = "links",
-                                                   newtab = TRUE,
-                                                   selected = FALSE,
-                                                   startExpanded = FALSE),
-                                          menuItem(text = "MultiLibraries Wizard",
+                                          
+                                          menuItem(text = "Expert Analysis of Multiple Libraries",
                                                    icon = icon("industry", "fa-1x"),
                                                    selected = FALSE,
                                                    startExpanded = TRUE,
-                                                   menuItem(text = "Libraries Input and Comparison",
+                                                   menuItem(text = "Library Input and Comparison",
                                                             icon = icon("list", lib = "glyphicon", "fa-1x"), 
                                                             #badgeLabel = 2, 
                                                             #badgeColor = "aqua",
@@ -163,7 +164,7 @@ shinyUI(fluidPage(
                                                             selected = FALSE
                                                             # startExpanded = FALSE
                                                    ),
-                                                   menuItem(text = "MultiLibraries Visualization",
+                                                   menuItem(text = "Library Data Visualization",
                                                             icon = icon("picture", lib = "glyphicon", "fa-1x"), 
                                                             #badgeLabel = 4, 
                                                             #badgeColor = "green",
@@ -192,17 +193,17 @@ shinyUI(fluidPage(
                                                             tabName = "quality_plots",
                                                             newtab = TRUE,
                                                             selected = FALSE),
-                                                   menuItem(text = "Proteins Intensity",
+                                                   menuItem(text = "Protein Intensities",
                                                             icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
                                                             tabName = "prot_intensities",
                                                             newtab = TRUE,
                                                             selected = FALSE)
-                                                   # ,
-                                                   # menuItem(text = "Multiple Reports Comparison",
-                                                   #          icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
-                                                   #          tabName = "multi_report",
-                                                   #          newtab = TRUE,
-                                                   #          selected = FALSE)
+                                                   ,
+                                                   menuItem(text = "Multiple Reports Comparison",
+                                                            icon = icon("folder-open", lib = "glyphicon", "fa-1x"),
+                                                            tabName = "multi_report",
+                                                            newtab = TRUE,
+                                                            selected = FALSE)
                                           ),
                                           menuItem(text = "Help",
                                                    icon = icon("edit", lib = "glyphicon", "fa-1x"), 
@@ -237,15 +238,15 @@ shinyUI(fluidPage(
                          wellPanel(fluidRow(
                            column(6, fluidRow(img(src='title2.png', align = "left", width = "65%", height = "65%")),
                                   fluidRow(strong(h4(HTML("A web tool to generate extended peptide reference MS/MS libraries for use in DIA mass spectrometry.")))),
-                                  fluidRow(strong(HTML("Major features of the application includes: <br />
+                                  fluidRow(strong(HTML("The major features of the application include: <br />
                                                        <br />
                                                        1. Library files processing, cleaning, and visualizations <br />
                                                        2. Quality checks, retention time calibration and combination of libraries <br />
                                                        3. Parallel processing of ~4 library files <br />
                                                        4. DIA report files processing and analysis <br />"), style = "background-color: #ffffff;")),
-                                  fluidRow(strong(h5(HTML("See 'Help' section for details of newly added functions.")))),
-                                  fluidRow(column(4, 
-                                                  strong(h3(tags$a(icon("play"), "iSwathX Wizard", onclick = "openTab('autowizard')"))),
+                                  fluidRow(strong(h5(HTML("See the 'Help' section for details of newly added functions.")))),
+                                  fluidRow(column(3, 
+                                                  strong(h3(tags$a(icon("play"), "Automated Wizard", onclick = "openTab('autowizard')"))),
                                                   tags$script(HTML("
                                                                    var openTab = function(tabName){
                                                                    $('a', $('.sidebar')).each(function(){
@@ -255,8 +256,8 @@ shinyUI(fluidPage(
                                                                    });
                                                                    }
                                                                    "))),
-                                           column(4, 
-                                                  strong(h3(tags$a(icon("play"), "Manual Mode", onclick = "openTab('datainput')"))),
+                                           column(3, 
+                                                  strong(h3(tags$a(icon("play"), "Binary Library Wizard", onclick = "openTab('datainput')"))),
                                                   tags$script(HTML("
                                                                    var openTab = function(tabName){
                                                                    $('a', $('.sidebar')).each(function(){
@@ -266,7 +267,18 @@ shinyUI(fluidPage(
                                                                    });
                                                                    }
                                                                    "))),
-                                           column(4, 
+                                           column(3, 
+                                                  strong(h3(tags$a(icon("play"), "Multiple Library Wizard", onclick = "openTab('multidatainput')"))),
+                                                  tags$script(HTML("
+                                                                   var openTab = function(tabName){
+                                                                   $('a', $('.sidebar')).each(function(){
+                                                                   if(this.getAttribute('data-value') == tabName) {
+                                                                   this.click()
+                                                                   };
+                                                                   });
+                                                                   }
+                                                                   "))),
+                                           column(3, 
                                                   strong(h3(tags$a(icon("edit", lib = "glyphicon"), "Help", onclick = "openTab('help')"))),
                                                   tags$script(HTML("
                                                                    var openTab = function(tabName){
@@ -280,7 +292,7 @@ shinyUI(fluidPage(
                                                   )
                                                   )
                                                   ),
-                           column(6, img(src='titlefig.png', align = "right", width = "90%", height = "90%"))
+                           column(6, img(src='workflow.png', align = "right", width = "90%", height = "90%"))
                                                   ),
                            style = "background-color: #ffffff;"),
                          splitLayout(cellWidths = c("45%", "55%"),
@@ -371,7 +383,7 @@ shinyUI(fluidPage(
                                      wellPanel(h3("Libraries Combination Workflow"),
                                                style = "background-color: #ffffff;",
                                                wellPanel(style = "background-color: #ffffff;",
-                                                         fluidRow(column(5, h4(strong("iSwathX Wizard"))),
+                                                         fluidRow(column(5, h4(strong("Automated Wizard)"))),
                                                                   column(3, offset = 4,
                                                                          strong(h3(tags$a("Start..", onclick = "openTab('autowizard')"))),
                                                                          tags$script(HTML("
